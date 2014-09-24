@@ -5,8 +5,8 @@
 
 #include <inc/stdio.h>
 
-void _warn(const char*, int, const char*, ...);
-void _panic(const char*, int, const char*, ...) __attribute__((noreturn));
+void _warn(const char*, int, const char*, ...) __attribute__((format(printf, 3, 4)));
+void _panic(const char*, int, const char*, ...) __attribute__((noreturn)) __attribute__((format(printf, 3, 4)));
 
 #define warn(...) _warn(__FILE__, __LINE__, __VA_ARGS__)
 #define panic(...) _panic(__FILE__, __LINE__, __VA_ARGS__)
