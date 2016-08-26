@@ -86,7 +86,6 @@ PERL	:= perl
 CFLAGS := $(CFLAGS) $(DEFS) $(LABDEFS) -O1 -fno-builtin -I$(TOP) -MD
 CFLAGS += -fno-omit-frame-pointer
 CFLAGS += -Wall -Wformat=2 -Wno-unused-but-set-variable -Wno-unused-function -Werror -gstabs -m32
-#CFLAGS += -Wno-format -Wno-unused
 # -fno-tree-ch prevented gcc from sometimes reordering read_ebp() before
 # mon_backtrace()'s function prologue on gcc version: (Debian 4.7.2-5) 4.7.2
 CFLAGS += -fno-tree-ch
@@ -173,8 +172,7 @@ export POST_CHECKOUT
 define PRE_COMMIT
 #!/bin/sh
 
-list=$$(git diff --cached --name-only --diff-filter=DMR)
-if [[ $$list =~ 'grade' ]]
+if git diff --cached --name-only --diff-filter=DMR | grep -q grade
 then
    echo "FAIL: Don't change grade files."
    exit 1
@@ -199,6 +197,15 @@ pre-qemu: .gdbinit
 
 qemu: $(IMAGES) pre-qemu
 	$(QEMU) $(QEMUOPTS)
+
+qemu-oscheck: $(IMAGES) pre-qemu
+	$(QEMU) $(QEMUOPTS) -oscourse
+
+qemu-oscheck-nox-gdb: $(IMAGES) pre-qemu
+	@echo "***"
+	@echo "*** Now run 'gdb'." 1>&2
+	@echo "***"
+	$(QEMU) -nographic $(QEMUOPTS) -S -oscourse
 
 qemu-nox: $(IMAGES) pre-qemu
 	@echo "***"
@@ -234,7 +241,7 @@ realclean: clean
 		qemu.pcap $(wildcard qemu.pcap.*)
 
 distclean: realclean
-	rm -rf conf/gcc.mk
+	rm -f .git/hooks/pre-commit .git/hooks/post-checkout
 
 ifneq ($(V),@)
 GRADEFLAGS += -v
