@@ -169,17 +169,15 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 	// Ignore stuff after the colon.
 	info->eip_fn_namelen = strfind(info->eip_fn_name, ':') - info->eip_fn_name;
 
-
-	// Search within [lline, rline] for the line number stab.
-	// If found, set info->eip_line to the right line number.
-	// If not found, return -1.
-	//
-	// Hint:
-	//	There's a particular stabs type used for line numbers.
-	//	Look at the STABS documentation and <inc/stab.h> to find
-	//	which one.
-	// Your code here.
-
+	// Find line number
+	stab_binsearch(stabs, &lline, &rline, N_SLINE, addr);
+	if (lline <= rline && stabs[lline].n_type == N_SLINE) {	
+		// WHY? Why is it in n_desc and not in n_value?	
+		info->eip_line = stabs[lline].n_desc; 
+	}
+	else {
+		info->eip_line = -1;
+	}
 
 	// Search backwards from the line number for the relevant filename
 	// stab.

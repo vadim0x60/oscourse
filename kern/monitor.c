@@ -24,7 +24,8 @@ struct Command {
 static struct Command commands[] = {
 	{ "help", "Display this list of commands", mon_help },
 	{ "kerninfo", "Display information about the kernel", mon_kerninfo },
-	{ "42", "But what was the question?", mon_42 }
+	{ "42", "But what was the question?", mon_42 },
+	{ "backtrace", "Stack backtrace", mon_backtrace }
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
@@ -62,7 +63,41 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 
 int
 mon_backtrace(int argc, char **argv, struct Trapframe *tf) {
-	// Your code here
+	cprintf("Stack backtrace: \n");
+	int ebp = read_ebp();
+	int eip;
+	struct Eipdebuginfo debugInfo;
+
+	// TODO: you know that's it's not always 4, right?
+	// This constant has to be already defined somewhere
+	const int word_size = 4;
+
+	while (ebp != 0) {
+		eip = *(int*)(ebp + word_size);
+
+		cprintf("  ebp %08x", ebp);
+		cprintf("  eip %08x", eip);
+
+		cprintf("  args");
+		int arg_idx = 0;
+		while(arg_idx < 5) {
+			cprintf(" %08x", *(int*)(ebp + word_size * (arg_idx + 2)));
+			arg_idx++;
+		}
+
+		cprintf("\n\t");
+
+		if (debuginfo_eip(eip, &debugInfo) == 0) {
+			// debuginfo_eip() exited correctly
+			cprintf(" %s:%d: %.*s+%d", debugInfo.eip_file, debugInfo.eip_line, debugInfo.eip_fn_namelen, debugInfo.eip_fn_name, (eip - debugInfo.eip_fn_addr));
+			cprintf("\n");
+		}
+
+		// The very first thing in the function stack frame is 
+		// a pointer to the previous function's stackframe
+		ebp = *(int*)ebp;
+	}
+
 	return 0;
 }
 
