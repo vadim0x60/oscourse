@@ -62,21 +62,18 @@ mon_kerninfo(int argc, char **argv, struct Trapframe *tf)
 }
 
 int
-mon_backtrace(int argc, char **argv, struct Trapframe *tf) {
-	cprintf("Stack backtrace: \n");
+mon_backtrace(int argc, char **argv, struct Trapframe *tf) {	
 	int ebp = read_ebp();
 	int eip;
 	struct Eipdebuginfo debugInfo;
+	const int word_size = sizeof(size_t);
 
-	// TODO: you know that's it's not always 4, right?
-	// This constant has to be already defined somewhere
-	const int word_size = 4;
+	cprintf("Stack backtrace:");
 
 	while (ebp != 0) {
 		eip = *(int*)(ebp + word_size);
-
-		cprintf("  ebp %08x", ebp);
-		cprintf("  eip %08x", eip);
+		
+		cprintf("\n  ebp %08x  eip %08x", ebp, eip);
 
 		cprintf("  args");
 		int arg_idx = 0;
@@ -85,12 +82,13 @@ mon_backtrace(int argc, char **argv, struct Trapframe *tf) {
 			arg_idx++;
 		}
 
-		cprintf("\n\t");
-
 		if (debuginfo_eip(eip, &debugInfo) == 0) {
 			// debuginfo_eip() exited correctly
-			cprintf(" %s:%d: %.*s+%d", debugInfo.eip_file, debugInfo.eip_line, debugInfo.eip_fn_namelen, debugInfo.eip_fn_name, (eip - debugInfo.eip_fn_addr));
-			cprintf("\n");
+			cprintf("\n\t%s:%d: %.*s+%d", 
+				debugInfo.eip_file, 
+				debugInfo.eip_line, 
+				debugInfo.eip_fn_namelen, debugInfo.eip_fn_name, 
+				(eip - debugInfo.eip_fn_addr));
 		}
 
 		// The very first thing in the function stack frame is 
