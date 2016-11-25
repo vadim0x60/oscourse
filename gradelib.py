@@ -96,12 +96,12 @@ def run_tests():
                       help="print commands")
     parser.add_option("--color", choices=["never", "always", "auto"],
                       default="auto", help="never, always, or auto")
-    parser.add_option("--make", action="store", type="string",
+    parser.add_option("--make", action="append", type="string",
                       dest="make_args", help="arguments to make command")
     (options, args) = parser.parse_args()
 
     # Start with a full build to catch build errors
-    make(options.make_args) if options.make_args else make()
+    make(*tuple(options.make_args)) if options.make_args else make()
 
     # Clean the file system if there is one
     reset_fs()
@@ -226,7 +226,12 @@ def maybe_unlink(*paths):
             if e.errno != errno.ENOENT:
                 raise
 
-COLORS = {"default": "\033[0m", "red": "\033[31m", "green": "\033[32m"}
+COLORS = {
+          "default": "\033[0m",
+          "red": "\033[31m",
+          "green": "\033[32m",
+          "yellow": "\033[33m"
+}
 
 def color(name, text):
     if options.color == "always" or (options.color == "auto" and os.isatty(1)):
@@ -320,6 +325,8 @@ class GDBClient(object):
                 if time.time() >= start + timeout:
                     raise
         self.__buf = ""
+        self.cb_nr = 0
+        self.on_output = []
 
     def fileno(self):
         if self.sock:
@@ -342,10 +349,10 @@ class GDBClient(object):
                 break
             pkt = m.group(1)
             self.__buf = self.__buf[m.end():]
-
-            if pkt.startswith("T05"):
-                # Breakpoint
-                raise TerminateTest
+            if self.cb_nr < len(self.on_output):
+                cb = self.on_output[self.cb_nr]
+                if cb and cb(pkt):
+                    self.cb_nr += 1
 
     def __send(self, cmd):
         packet = "$%s#%02x" % (cmd, sum(map(ord, cmd)) % 256)
@@ -364,6 +371,18 @@ class GDBClient(object):
 
     def breakpoint(self, addr):
         self.__send("Z1,%x,1" % addr)
+
+    def remove_breakpoint(self, addr):
+        self.__send("z1,%x,1" % addr)
+
+    def view_memory(self, addr, length):
+        self.__send("m %x,%d" % (addr,length))
+
+    def view_regs(self):
+        self.__send("g")
+
+    def update_regs(self, regs):
+        self.__send("G%s" % regs)
 
 
 ##################################################################
@@ -485,7 +504,7 @@ Failed to shutdown QEMU.  You might need to 'killall qemu' or
 # Monitors
 #
 
-__all__ += ["save", "stop_breakpoint", "call_on_line", "stop_on_line"]
+__all__ += ["save", "setup_breakpoint", "stop_breakpoint", "call_on_line", "stop_on_line", "add_gdb_command", "add_breakpoint", "get_symbol_address"]
 
 def save(path):
     """Return a monitor that writes QEMU's output to path.  If the
@@ -510,19 +529,42 @@ def save(path):
     f = open(path, "wb")
     return setup_save
 
+def get_symbol_address(s):
+    addrs = [int(sym[:8], 16) for sym in open("obj/kern/kernel.sym")
+            if sym[11:].strip() == s]
+    assert len(addrs), "Symbol %s not found" % s
+    return addrs
+
+def setup_breakpoint(runner, addr):
+    if isinstance(addr, str):
+        addrs = get_symbol_address(addr)
+        runner.gdb.breakpoint(addrs[0])
+    else:
+        runner.gdb.breakpoint(addr)
+
+def add_breakpoint(addr):
+    def add_bp(runner):
+        setup_breakpoint(runner, addr)
+    return add_bp
+
 def stop_breakpoint(addr):
     """Returns a monitor that stops when addr is reached.  addr may be
     a number or the name of a symbol."""
 
-    def setup_breakpoint(runner):
-        if isinstance(addr, str):
-            addrs = [int(sym[:8], 16) for sym in open("obj/kern/kernel.sym")
-                     if sym[11:].strip() == addr]
-            assert len(addrs), "Symbol %s not found" % addr
-            runner.gdb.breakpoint(addrs[0])
-        else:
-            runner.gdb.breakpoint(addr)
-    return setup_breakpoint
+    def terminate_at_breakpoint(runner):
+        setup_breakpoint(runner, addr)
+        def terminate(out):
+            if out.startswith("T05"):
+                raise TerminateTest
+            return 0
+        runner.gdb.on_output.append(terminate)
+
+    return terminate_at_breakpoint
+
+def add_gdb_command(callback):
+    def add_callback(runner):
+        runner.gdb.on_output.append(callback)
+    return add_callback
 
 def call_on_line(regexp, callback):
     """Returns a monitor that calls 'callback' when QEMU prints a line
