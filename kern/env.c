@@ -119,8 +119,19 @@ envid2env(envid_t envid, struct Env **env_store, bool checkperm)
 void
 env_init(void)
 {
-	// Set up envs array
-	// LAB 3: Your code here.
+	// At this point, the first environment in the env_free_list 
+	// is the same as the first environment in envs
+	env_free_list = envs;
+
+	// Note that envs and env_free_list are stored in the same memory
+	// All the difference between the two collections comes from pointer magic
+	int env_idx;
+	envs[0].env_id = 0;
+
+	for (env_idx = 1; env_idx < NENV; env_idx++) {
+		envs[env_idx].env_id = 0;
+		envs[env_idx - 1].env_link = &envs[env_idx];
+	}
 	
 	// Per-CPU part of the initialization
 	env_init_percpu();
@@ -255,26 +266,39 @@ bind_functions(struct Env *e, struct Elf *elf)
 static void
 load_icode(struct Env *e, uint8_t *binary, size_t size)
 {
-	// Hints:
-	//  Load each program segment into memory
-	//  at the address specified in the ELF section header.
-	//  You should only load segments with ph->p_type == ELF_PROG_LOAD.
-	//  Each segment's address can be found in ph->p_va
-	//  and its size in memory can be found in ph->p_memsz.
-	//  The ph->p_filesz bytes from the ELF binary, starting at
-	//  'binary + ph->p_offset', should be copied to address
-	//  ph->p_va.  Any remaining memory bytes should be cleared to zero.
-	//  (The ELF header should have ph->p_filesz <= ph->p_memsz.)
-	//
-	//  ELF segments are not necessarily page-aligned, but you can
-	//  assume for this function that no two segments will touch
-	//  the same page.
-	//
-	//  You must also do something with the program's entry point,
-	//  to make sure that the environment starts executing there.
-	//  What?  (See env_run() and env_pop_tf() below.)
+	struct Elf *elfhdr = (struct Elf*) binary;
 
-	// LAB 3: Your code here.
+	if (elfhdr->e_magic != ELF_MAGIC)
+		panic("ELF image does not have valid ELF_MAGIC");
+
+	struct Proghdr *ph, *eph;
+
+	ph = (struct Proghdr *) (binary + elfhdr->e_phoff);
+	eph = ph + elfhdr->e_phnum;
+	for (; ph < eph; ph++) {
+		if (ph->p_type != ELF_PROG_LOAD) continue;
+
+		uint8_t *src = (uint8_t*) (binary + ph->p_offset);
+		uint8_t *dest = (uint8_t*) ph->p_va;
+
+		int count = 0;
+
+		while(count < ph->p_filesz) {
+			*dest = *src;
+			src++;
+			dest++;
+			count++;
+		}
+
+		while(count < ph->p_memsz) {
+			*dest = 0;
+			count++;
+			dest++;
+		}
+	}
+
+	// Register entry point
+	e->env_tf.tf_eip = elfhdr->e_entry;
 	
 #ifdef CONFIG_KSPACE
 	// Uncomment this for task №5.
@@ -292,7 +316,10 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 void
 env_create(uint8_t *binary, size_t size, enum EnvType type)
 {
-	//LAB 3: Your code here.
+	struct Env ** env = NULL;
+	env_alloc(env, 0);
+	(**env).env_type = type;
+	load_icode(*env, binary, size);
 }
 
 //
@@ -411,23 +438,15 @@ env_run(struct Env *e)
 		ENVX(e->env_id));
 #endif
 
-	// Step 1: If this is a context switch (a new environment is running):
-	//	   1. Set the current environment (if any) back to
-	//	      ENV_RUNNABLE if it is ENV_RUNNING (think about
-	//	      what other states it can be in),
-	//	   2. Set 'curenv' to the new environment,
-	//	   3. Set its status to ENV_RUNNING,
-	//	   4. Update its 'env_runs' counter,
-	// Step 2: Use env_pop_tf() to restore the environment's
-	//	   registers and starting execution of process.
+	if (curenv != NULL) {
+		if (curenv->env_status == ENV_RUNNING) {
+			curenv->env_status = ENV_RUNNABLE;
+		}
+	}
 
-	// Hint: This function loads the new environment's state from
-	//	e->env_tf.  Go back through the code you wrote above
-	//	and make sure you have set the relevant parts of
-	//	e->env_tf to sensible values.
-	//
-	//LAB 3: Your code here.
-
+	curenv = e;
+	curenv->env_status = ENV_RUNNING;
+	curenv->env_runs++;
 
 	env_pop_tf(&e->env_tf);
 }
