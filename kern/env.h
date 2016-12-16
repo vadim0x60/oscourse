@@ -3,6 +3,8 @@
 #ifndef JOS_KERN_ENV_H
 #define JOS_KERN_ENV_H
 
+#define STACK_SIZE 0x1000
+
 #include <inc/env.h>
 #include <kern/cpu.h>
 

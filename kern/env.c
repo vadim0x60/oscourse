@@ -158,6 +158,8 @@ env_init_percpu(void)
 	lldt(0);
 }
 
+int global_esp = USTACKTOP;
+
 //
 // Allocates and initializes a new environment.
 // On success, the new environment is stored in *newenv_store.
@@ -210,8 +212,12 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 	e->env_tf.tf_es = GD_KD | 0;
 	e->env_tf.tf_ss = GD_KD | 0;
 	e->env_tf.tf_cs = GD_KT | 0;
-	// LAB 3: Your code here.
-	// e->env_tf.tf_esp = 0x210000;
+
+	e->env_tf.tf_esp = global_esp;
+	global_esp -= STACK_SIZE;
+
+	// TODO: There ought to be a check for stack bottom, right?
+	// TODO: There ought to be a way to free the stack memory, right?
 #else
 #endif
 	// You will set e->env_tf.tf_eip later.
