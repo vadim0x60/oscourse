@@ -8,18 +8,25 @@ struct Taskstate cpu_ts;
 void sched_halt(void);
 
 // Choose a user environment to run and run it.
+//
+// This function does not return
 void
 sched_yield(void)
 {
-	struct Env* env = curenv ? curenv : envs;
+	cprintf("sched_yield\n");
 
-	while (true) {
+	struct Env* startenv = curenv ? curenv + 1 : envs;
+	struct Env* env = startenv;
+
+	do {
+		if (env == (envs + NENV)) env = envs;
+		if (env->env_status == ENV_RUNNABLE || env->env_status == ENV_RUNNING) env_run(env);
+
 		env++;
 
-		if (env == (envs + NENV)) env = envs;
-		if (env->env_status == ENV_RUNNABLE) env_run(env);
-		if (env == curenv && env->env_status == ENV_RUNNING) env_run(env); 
+		cprintf("RRRRound rrobin!!\n");
 	}
+	while (env != startenv);
 	
 	// sched_halt never returns
 	sched_halt();

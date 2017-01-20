@@ -5,70 +5,104 @@
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.9~svn20110310	//
 BACKTRACE_RE	grade-lab1	/^BACKTRACE_RE = r"^ *ebp +001[0-9a-z]{5} +eip +00100[0-9a-z]{3} +args +([0-9a-z]+)"$/;"	kind:variable	line:17
-COLORS	gradelib.py	/^COLORS = {"default": "\\033[0m", "red": "\\033[31m", "green": "\\033[32m"}$/;"	kind:variable	line:229
+COLORS	gradelib.py	/^COLORS = {$/;"	kind:variable	line:229
 CURRENT_TEST	gradelib.py	/^CURRENT_TEST = None$/;"	kind:variable	line:18
-GDBClient	gradelib.py	/^class GDBClient(object):$/;"	kind:class	line:310
+ENVRUN_RE	grade-lab3	/^ENVRUN_RE = r"^envrun (RUNNABLE|RUNNING):? (\\d)$"$/;"	kind:variable	line:93
+ENV_RE	grade-lab3	/^ENV_RE = r"^\\[(?:\\d+)\\] (new|free) env (\\d+)$"$/;"	kind:variable	line:92
+GDBClient	gradelib.py	/^class GDBClient(object):$/;"	kind:class	line:315
 MAKE_TIMESTAMP	gradelib.py	/^MAKE_TIMESTAMP = 0$/;"	kind:variable	line:198
-QEMU	gradelib.py	/^class QEMU(object):$/;"	kind:class	line:246
-Runner	gradelib.py	/^class Runner():$/;"	kind:class	line:378
+QEMU	gradelib.py	/^class QEMU(object):$/;"	kind:class	line:251
+Runner	gradelib.py	/^class Runner():$/;"	kind:class	line:397
 TESTS	gradelib.py	/^TESTS = []$/;"	kind:variable	line:15
-TerminateTest	gradelib.py	/^class TerminateTest(Exception):$/;"	kind:class	line:375
-_GDBPORT	gradelib.py	/^    _GDBPORT = None$/;"	kind:variable	line:247
+TerminateTest	gradelib.py	/^class TerminateTest(Exception):$/;"	kind:class	line:394
+_GDBPORT	gradelib.py	/^    _GDBPORT = None$/;"	kind:variable	line:252
 __all__	gradelib.py	/^__all__ = []$/;"	kind:variable	line:7
-__init__	gradelib.py	/^    def __init__(self, *default_monitors):$/;"	kind:member	line:379
-__init__	gradelib.py	/^    def __init__(self, *make_args):$/;"	kind:member	line:249
-__init__	gradelib.py	/^    def __init__(self, port, timeout=15):$/;"	kind:member	line:311
-__monitor_start	gradelib.py	/^    def __monitor_start(self, output):$/;"	kind:member	line:438
-__react	gradelib.py	/^    def __react(self, reactors, timeout):$/;"	kind:member	line:448
-__send	gradelib.py	/^    def __send(self, cmd):$/;"	kind:member	line:350
-__send_break	gradelib.py	/^    def __send_break(self):$/;"	kind:member	line:354
+__init__	gradelib.py	/^    def __init__(self, *default_monitors):$/;"	kind:member	line:398
+__init__	gradelib.py	/^    def __init__(self, *make_args):$/;"	kind:member	line:254
+__init__	gradelib.py	/^    def __init__(self, port, timeout=15):$/;"	kind:member	line:316
+__monitor_start	gradelib.py	/^    def __monitor_start(self, output):$/;"	kind:member	line:457
+__react	gradelib.py	/^    def __react(self, reactors, timeout):$/;"	kind:member	line:467
+__send	gradelib.py	/^    def __send(self, cmd):$/;"	kind:member	line:357
+__send_break	gradelib.py	/^    def __send_break(self):$/;"	kind:member	line:361
+add_bp	gradelib.py	/^    def add_bp(runner):$/;"	kind:function	line:546
+add_breakpoint	gradelib.py	/^def add_breakpoint(addr):$/;"	kind:function	line:545
+add_callback	gradelib.py	/^    def add_callback(runner):$/;"	kind:function	line:565
+add_gdb_command	gradelib.py	/^def add_gdb_command(callback):$/;"	kind:function	line:564
 assert_equal	gradelib.py	/^def assert_equal(got, expect, msg=""):$/;"	kind:function	line:133
 assert_lines_match	gradelib.py	/^def assert_lines_match(text, *regexps, **kw):$/;"	kind:function	line:142
 assert_lines_match_kw	gradelib.py	/^    def assert_lines_match_kw(no=[]):$/;"	kind:function	line:147
-breakpoint	gradelib.py	/^    def breakpoint(self, addr):$/;"	kind:member	line:365
-call_on_line	gradelib.py	/^def call_on_line(regexp, callback):$/;"	kind:function	line:527
-close	gradelib.py	/^    def close(self):$/;"	kind:member	line:357
-color	gradelib.py	/^def color(name, text):$/;"	kind:function	line:231
-cont	gradelib.py	/^    def cont(self):$/;"	kind:member	line:362
+breakpoint	gradelib.py	/^    def breakpoint(self, addr):$/;"	kind:member	line:372
+call_on_line	gradelib.py	/^def call_on_line(regexp, callback):$/;"	kind:function	line:569
+close	gradelib.py	/^    def close(self):$/;"	kind:member	line:364
+color	gradelib.py	/^def color(name, text):$/;"	kind:function	line:236
+cont	gradelib.py	/^    def cont(self):$/;"	kind:member	line:369
+continue_after_csys_exit	grade-lab3	/^def continue_after_csys_exit(out):$/;"	kind:function	line:44
+continue_after_env_pop_tf	grade-lab3	/^def continue_after_env_pop_tf(out):$/;"	kind:function	line:34
 end_part	gradelib.py	/^def end_part(name):$/;"	kind:function	line:79
-fileno	gradelib.py	/^    def fileno(self):$/;"	kind:function	line:287
-fileno	gradelib.py	/^    def fileno(self):$/;"	kind:member	line:324
+ffail	grade-lab3	/^ffail  = generate_function_name()$/;"	kind:variable	line:164
+fileno	gradelib.py	/^    def fileno(self):$/;"	kind:function	line:292
+fileno	gradelib.py	/^    def fileno(self):$/;"	kind:member	line:331
+fname	grade-lab3	/^fname  = generate_function_name()$/;"	kind:variable	line:163
+generate_function_name	grade-lab3	/^def generate_function_name():$/;"	kind:function	line:144
+generate_postfix	grade-lab3	/^def generate_postfix():$/;"	kind:function	line:153
 get_current_test	gradelib.py	/^def get_current_test():$/;"	kind:function	line:122
-get_gdb_port	gradelib.py	/^    def get_gdb_port():$/;"	kind:function	line:275
+get_gdb_port	gradelib.py	/^    def get_gdb_port():$/;"	kind:function	line:280
+get_symbol_address	gradelib.py	/^def get_symbol_address(s):$/;"	kind:function	line:532
 grade-lab1	grade-lab1	1;"	kind:file	line:1
+grade-lab3	grade-lab3	1;"	kind:file	line:1
 gradelib.py	gradelib.py	1;"	kind:file	line:1
-handle_output	gradelib.py	/^        def handle_output(output):$/;"	kind:function	line:533
-handle_read	gradelib.py	/^    def handle_read(self):$/;"	kind:function	line:291
-handle_read	gradelib.py	/^    def handle_read(self):$/;"	kind:member	line:328
-kill	gradelib.py	/^    def kill(self):$/;"	kind:function	line:306
+handle_output	gradelib.py	/^        def handle_output(output):$/;"	kind:function	line:575
+handle_read	gradelib.py	/^    def handle_read(self):$/;"	kind:function	line:296
+handle_read	gradelib.py	/^    def handle_read(self):$/;"	kind:member	line:335
+is_hex	grade-lab3	/^def is_hex(s):$/;"	kind:function	line:10
+kill	gradelib.py	/^    def kill(self):$/;"	kind:function	line:311
+load_icode_bytes	grade-lab3	/^load_icode_bytes = []$/;"	kind:variable	line:17
 make	gradelib.py	/^def make(*target):$/;"	kind:function	line:211
-match	gradelib.py	/^    def match(self, *args, **kwargs):$/;"	kind:member	line:478
+match	gradelib.py	/^    def match(self, *args, **kwargs):$/;"	kind:member	line:497
 maybe_unlink	gradelib.py	/^def maybe_unlink(*paths):$/;"	kind:function	line:221
+pfx1	grade-lab3	/^pfx1   = generate_postfix()$/;"	kind:variable	line:165
+pfx2	grade-lab3	/^pfx2   = generate_postfix()$/;"	kind:variable	line:166
 post_make	gradelib.py	/^def post_make():$/;"	kind:function	line:205
 pre_make	gradelib.py	/^def pre_make():$/;"	kind:function	line:200
 r	grade-lab1	/^r = Runner(save("jos.out"),$/;"	kind:variable	line:6
+r	grade-lab3	/^r = Runner(save("jos.out"),$/;"	kind:variable	line:53
 register_test	gradelib.py	/^    def register_test(fn, title=title):$/;"	kind:function	line:26
-reset_fs	gradelib.py	/^def reset_fs():$/;"	kind:function	line:236
-run_qemu	gradelib.py	/^    def run_qemu(self, *monitors, **kw):$/;"	kind:member	line:382
-run_qemu_kw	gradelib.py	/^        def run_qemu_kw(target_base="qemu", make_args=[], timeout=30):$/;"	kind:function	line:391
+regs	grade-lab3	/^regs = []$/;"	kind:variable	line:25
+remove_breakpoint	gradelib.py	/^    def remove_breakpoint(self, addr):$/;"	kind:member	line:375
+reset_fs	gradelib.py	/^def reset_fs():$/;"	kind:function	line:241
+run_qemu	gradelib.py	/^    def run_qemu(self, *monitors, **kw):$/;"	kind:member	line:401
+run_qemu_kw	gradelib.py	/^        def run_qemu_kw(target_base="qemu", make_args=[], timeout=30):$/;"	kind:function	line:410
 run_test	gradelib.py	/^        def run_test():$/;"	kind:function	line:33
 run_tests	gradelib.py	/^def run_tests():$/;"	kind:function	line:89
-save	gradelib.py	/^def save(path):$/;"	kind:function	line:490
-save_on_finish	gradelib.py	/^    def save_on_finish(fail):$/;"	kind:function	line:500
-setup_breakpoint	gradelib.py	/^    def setup_breakpoint(runner):$/;"	kind:function	line:517
-setup_call_on_line	gradelib.py	/^    def setup_call_on_line(runner):$/;"	kind:function	line:531
-setup_save	gradelib.py	/^    def setup_save(runner):$/;"	kind:function	line:494
+save	gradelib.py	/^def save(path):$/;"	kind:function	line:509
+save_load_icode_bytes	grade-lab3	/^def save_load_icode_bytes(out):$/;"	kind:function	line:18
+save_on_finish	gradelib.py	/^    def save_on_finish(fail):$/;"	kind:function	line:519
+save_regs	grade-lab3	/^def save_regs(out):$/;"	kind:function	line:26
+setup_breakpoint	gradelib.py	/^def setup_breakpoint(runner, addr):$/;"	kind:function	line:538
+setup_call_on_line	gradelib.py	/^    def setup_call_on_line(runner):$/;"	kind:function	line:573
+setup_save	gradelib.py	/^    def setup_save(runner):$/;"	kind:function	line:513
 show_command	gradelib.py	/^def show_command(cmd):$/;"	kind:function	line:217
 show_part	gradelib.py	/^    def show_part():$/;"	kind:function	line:80
-stop	gradelib.py	/^    def stop(line):$/;"	kind:function	line:547
-stop_breakpoint	gradelib.py	/^def stop_breakpoint(addr):$/;"	kind:function	line:513
-stop_on_line	gradelib.py	/^def stop_on_line(regexp):$/;"	kind:function	line:543
+stop	gradelib.py	/^    def stop(line):$/;"	kind:function	line:589
+stop_breakpoint	gradelib.py	/^def stop_breakpoint(addr):$/;"	kind:function	line:550
+stop_on_line	gradelib.py	/^def stop_on_line(regexp):$/;"	kind:function	line:585
+terminate	gradelib.py	/^        def terminate(out):$/;"	kind:function	line:556
+terminate_at_breakpoint	gradelib.py	/^    def terminate_at_breakpoint(runner):$/;"	kind:function	line:554
 test	gradelib.py	/^def test(points, title=None, parent=None):$/;"	kind:function	line:20
 test_backtrace_arguments	grade-lab1	/^def test_backtrace_arguments():$/;"	kind:function	line:25
 test_backtrace_count	grade-lab1	/^def test_backtrace_count():$/;"	kind:function	line:20
 test_backtrace_lines	grade-lab1	/^def test_backtrace_lines():$/;"	kind:function	line:37
 test_backtrace_symbols	grade-lab1	/^def test_backtrace_symbols():$/;"	kind:function	line:31
+test_bind_functions	grade-lab3	/^def test_bind_functions():$/;"	kind:function	line:85
+test_env	grade-lab3	/^def test_env():$/;"	kind:function	line:96
+test_envrun	grade-lab3	/^def test_envrun():$/;"	kind:function	line:107
 test_jos	grade-lab1	/^def test_jos():$/;"	kind:function	line:10
+test_jos	grade-lab3	/^def test_jos():$/;"	kind:function	line:65
+test_load_icode	grade-lab3	/^def test_load_icode():$/;"	kind:function	line:69
 test_printf	grade-lab1	/^def test_printf():$/;"	kind:function	line:14
-user_test	gradelib.py	/^    def user_test(self, binary, *monitors, **kw):$/;"	kind:member	line:468
-wait	gradelib.py	/^    def wait(self):$/;"	kind:function	line:301
+test_sys_exit	grade-lab3	/^def test_sys_exit():$/;"	kind:function	line:74
+update_regs	gradelib.py	/^    def update_regs(self, regs):$/;"	kind:member	line:384
+user_test	gradelib.py	/^    def user_test(self, binary, *monitors, **kw):$/;"	kind:member	line:487
+view_memory	gradelib.py	/^    def view_memory(self, addr, length):$/;"	kind:member	line:378
+view_regs	gradelib.py	/^    def view_regs(self):$/;"	kind:member	line:381
+wait	gradelib.py	/^    def wait(self):$/;"	kind:function	line:306

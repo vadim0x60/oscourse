@@ -12,6 +12,7 @@
 #include <kern/monitor.h>
 #include <kern/sched.h>
 #include <kern/cpu.h>
+#include <kern/kdebug.h>
 
 struct Env env_array[NENV];
 struct Env *curenv = NULL;
@@ -22,6 +23,11 @@ static struct Env *env_free_list;	// Free environment list
 #define ENVGENSHIFT	12		// >= LOGNENV
 
 extern unsigned int bootstacktop;
+
+#ifdef CONFIG_KSPACE
+static void
+bind_functions(struct Env *e, struct Elf *elf);
+#endif
 
 // Global descriptor table.
 //
@@ -127,9 +133,11 @@ env_init(void)
 	// All the difference between the two collections comes from pointer magic
 	int env_idx;
 	envs[0].env_id = 0;
+	envs[0].env_status = ENV_FREE;
 
 	for (env_idx = 1; env_idx < NENV; env_idx++) {
 		envs[env_idx].env_id = 0;
+		envs[env_idx].env_status = ENV_FREE;
 		envs[env_idx - 1].env_link = &envs[env_idx];
 	}
 	
@@ -218,13 +226,15 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 
 	// TODO: There ought to be a check for stack bottom, right?
 	// TODO: There ought to be a way to free the stack memory, right?
+	// UPD: Алексей Владимирович сказал, что всё ок.
+	// А то, что стек бесконечно растёт и никогда не освобождается - дело житейское
 #else
 #endif
 	// You will set e->env_tf.tf_eip later.
 
 	// commit the allocation
 	env_free_list = e->env_link;
-	*newenv_store = e;
+	*newenv_store = e; 
 
 	cprintf("[%08x] new env %08x\n", curenv ? curenv->env_id : 0, e->env_id);
 	return 0;
@@ -237,15 +247,39 @@ bind_functions(struct Env *e, struct Elf *elf)
 	//find_function from kdebug.c should be used
 	//LAB 3: Your code here.
 
-	/*
-	*((int *) 0x00231008) = (int) &cprintf;
-	*((int *) 0x00221004) = (int) &sys_yield;
-	*((int *) 0x00231004) = (int) &sys_yield;
-	*((int *) 0x00241004) = (int) &sys_yield;
-	*((int *) 0x0022100c) = (int) &sys_exit;
-	*((int *) 0x00231010) = (int) &sys_exit;
-	*((int *) 0x0024100c) = (int) &sys_exit;
-	*/
+	struct Secthdr *secthdrs, *sh, *esh;
+	secthdrs = (struct Secthdr*) ((uint8_t *)elf + elf->e_shoff);
+	sh = secthdrs;
+	esh = sh + elf->e_shnum;
+
+	// Iterate over symbol tables
+	for (; sh < esh; sh++) {
+		if (sh->sh_type != ELF_SHT_SYMTAB) continue;
+		char* strtable = (char*) ((uint8_t *)elf + (secthdrs + sh->sh_link)->sh_offset);		
+		
+		uint8_t *symaddr, *symend;
+		symaddr = (uint8_t *)elf + sh->sh_offset;
+		symend = symaddr + sh->sh_size;
+		
+		// Iterate over symbols
+		for (; symaddr < symend; symaddr += sh->sh_entsize) {
+			struct Elf32_Sym* sym = (struct Elf32_Sym*) symaddr;
+
+			// Make sure that the symbol is a global variable
+			if (sym->st_name == 0) continue;
+			if (ELF32_ST_TYPE(sym->st_info) != STT_OBJECT) continue;
+
+			// Find a function with the same name
+			uintptr_t fun = find_function(strtable + sym->st_name);
+
+			cprintf("before: %d\n", (int)*(uintptr_t *)sym->st_value);
+
+			// Bind the variable to the function
+			if (fun != 0) *(uintptr_t *)sym->st_value = fun;
+
+			cprintf("after: %d\n", (int)*(uintptr_t *)sym->st_value);
+		}
+	}
 }
 #endif
 
@@ -308,7 +342,7 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 	
 #ifdef CONFIG_KSPACE
 	// Uncomment this for task №5.
-	//bind_functions();
+	bind_functions(e, elfhdr);
 #endif
 }
 
@@ -371,12 +405,14 @@ env_destroy(struct Env *e)
 void
 csys_exit(void)
 {
+	cprintf("csys_exit()\n");
 	env_destroy(curenv);
 }
 
 void
 csys_yield(struct Trapframe *tf)
 {
+	cprintf("csys_yield");
 	memcpy(&curenv->env_tf, tf, sizeof(struct Trapframe));
 	sched_yield();
 }
