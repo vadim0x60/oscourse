@@ -166,7 +166,7 @@ env_init_percpu(void)
 	lldt(0);
 }
 
-int global_esp = USTACKTOP;
+int global_esp = 0x210000;
 
 //
 // Allocates and initializes a new environment.
@@ -244,9 +244,6 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 static void
 bind_functions(struct Env *e, struct Elf *elf)
 {
-	//find_function from kdebug.c should be used
-	//LAB 3: Your code here.
-
 	struct Secthdr *secthdrs, *sh, *esh;
 	secthdrs = (struct Secthdr*) ((uint8_t *)elf + elf->e_shoff);
 	sh = secthdrs;
@@ -278,12 +275,9 @@ bind_functions(struct Env *e, struct Elf *elf)
 
 			uintptr_t * fun_ref = (uintptr_t *)sym->st_value;
 			cprintf("Function reference found at 0x%x\n", (int)fun_ref);
-			//cprintf("frame: %d [%d] %d %d %d\n", (int)*(v - 2), (int)*(v - 1), (int)*v, (int)*(v + 1), (int)*(v + 2));
 
 			// Bind the variable to the function
 			if (fun != 0) *fun_ref = fun;
-
-			//cprintf("after: %d\n", (int)*(v - 1));
 		}
 	}
 }

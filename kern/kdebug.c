@@ -215,7 +215,6 @@ find_function(const char * const fname)
 {
 	const struct Stab *stabs = __STAB_BEGIN__, *stab_end = __STAB_END__;
 	const char *stabstr = __STABSTR_BEGIN__, *stabstr_end = __STABSTR_END__;
-	//LAB 3: Your code is here.
 
 	const struct Stab* stab;
 

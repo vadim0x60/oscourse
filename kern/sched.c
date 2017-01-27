@@ -23,8 +23,6 @@ sched_yield(void)
 		if (env->env_status == ENV_RUNNABLE || env->env_status == ENV_RUNNING) env_run(env);
 
 		env++;
-
-		cprintf("RRRRound rrobin!!\n");
 	}
 	while (env != startenv);
 	
