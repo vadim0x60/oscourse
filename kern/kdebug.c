@@ -203,15 +203,16 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 	return 0;
 }
 
-int str_starts_with(const char* str, const char* prefix) {
-	return strncmp(str, prefix, strlen(prefix)) == 0;
+int stabname_equals(const char* stab_name, const char* fname) {
+	// stab_name has a format of "fname:F(num, num)".
+
+	int l = strlen(fname);
+	return stab_name[l] == ':' && strncmp(stab_name, fname, l) == 0;
 }
 
 uintptr_t
 find_function(const char * const fname)
 {
-	cprintf("find_function(): searching for %s() \n", fname);
-
 	const struct Stab *stabs = __STAB_BEGIN__, *stab_end = __STAB_END__;
 	const char *stabstr = __STABSTR_BEGIN__, *stabstr_end = __STABSTR_END__;
 	//LAB 3: Your code is here.
@@ -222,14 +223,10 @@ find_function(const char * const fname)
 		if (stab->n_type != N_FUN) continue;
 
 		char* stab_name = (char*)(stabstr + stab->n_strx);
-		if (stab_name > stabstr_end) continue; // Oops. Out of bounds
-
-		// stab_name has a format of "fname:F(num, num)".
-		if (str_starts_with(stab_name, fname)) return stab->n_value;
+		if (stab_name > stabstr_end) continue; // Oops. Out of bounds		
+		if (stabname_equals(stab_name, fname)) return stab->n_value;
 	}
-
-	cprintf("find_function(): %s() not found\n", fname);
-
+	
 	return 0;
 }
 

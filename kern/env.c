@@ -266,18 +266,24 @@ bind_functions(struct Env *e, struct Elf *elf)
 			struct Elf32_Sym* sym = (struct Elf32_Sym*) symaddr;
 
 			// Make sure that the symbol is a global variable
-			if (sym->st_name == 0) continue;
+			//if (sym->st_name == 0) continue;
+			if (ELF32_ST_BIND(sym->st_info) != 1) continue; // Global binding
 			if (ELF32_ST_TYPE(sym->st_info) != STT_OBJECT) continue;
 
 			// Find a function with the same name
 			uintptr_t fun = find_function(strtable + sym->st_name);
+			if (!fun) continue;
+			cprintf("Function found at 0x%x\n", (int)fun);
+			cprintf("Function name %s\n", strtable + sym->st_name);
 
-			cprintf("before: %d\n", (int)*(uintptr_t *)sym->st_value);
+			uintptr_t * fun_ref = (uintptr_t *)sym->st_value;
+			cprintf("Function reference found at 0x%x\n", (int)fun_ref);
+			//cprintf("frame: %d [%d] %d %d %d\n", (int)*(v - 2), (int)*(v - 1), (int)*v, (int)*(v + 1), (int)*(v + 2));
 
 			// Bind the variable to the function
-			if (fun != 0) *(uintptr_t *)sym->st_value = fun;
+			if (fun != 0) *fun_ref = fun;
 
-			cprintf("after: %d\n", (int)*(uintptr_t *)sym->st_value);
+			//cprintf("after: %d\n", (int)*(v - 1));
 		}
 	}
 }
@@ -432,6 +438,8 @@ env_pop_tf(struct Trapframe *tf)
 	static uintptr_t eip = 0;
 	eip = tf->tf_eip;
 
+	cprintf("eip: 0x%x\n", (int)eip);
+
 	asm volatile (
 		"mov %c[ebx](%[tf]), %%ebx \n\t"
 		"mov %c[ecx](%[tf]), %%ecx \n\t"
@@ -456,7 +464,7 @@ env_pop_tf(struct Trapframe *tf)
 		  [edi]"i"(offsetof(struct Trapframe, tf_regs.reg_edi)),
 		  [ebp]"i"(offsetof(struct Trapframe, tf_regs.reg_ebp)),
 		  [eflags]"i"(offsetof(struct Trapframe, tf_eflags)),
-//		  [esp]"i"(offsetof(struct Trapframe, tf_regs.reg_oesp))
+		  //[esp]"i"(offsetof(struct Trapframe, tf_regs.reg_oesp))
 		  [esp]"i"(offsetof(struct Trapframe, tf_esp))
 		: "cc", "memory", "ebx", "ecx", "edx", "esi", "edi" );
 #else
