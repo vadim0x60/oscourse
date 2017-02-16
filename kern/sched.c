@@ -13,8 +13,6 @@ void sched_halt(void);
 void
 sched_yield(void)
 {
-	cprintf("sched_yield\n");
-
 	struct Env* startenv = curenv ? curenv + 1 : envs;
 	struct Env* env = startenv;
 

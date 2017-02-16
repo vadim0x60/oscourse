@@ -435,8 +435,6 @@ env_pop_tf(struct Trapframe *tf)
 	eip = tf->tf_eip;
 	tf->tf_eflags |= FL_IF;
 
-	cprintf("eip: 0x%x\n", (int)eip);
-
 	asm volatile (
 		"mov %c[ebx](%[tf]), %%ebx \n\t"
 		"mov %c[ecx](%[tf]), %%ecx \n\t"

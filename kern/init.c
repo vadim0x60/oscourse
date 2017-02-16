@@ -37,6 +37,7 @@ i386_init(void)
 
 	pic_init();
 	rtc_init();
+	irq_setmask_8259A(0xFFFF & ~(1<<IRQ_CLOCK) & ~(1<<IRQ_SLAVE));
 
 #ifdef CONFIG_KSPACE
 	// Touch all you want.

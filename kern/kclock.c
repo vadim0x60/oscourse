@@ -3,21 +3,46 @@
 #include <inc/x86.h>
 #include <kern/kclock.h>
 
+// Stupid I/O delay routine necessitated by historical PC design flaws
+static void
+delay(void)
+{
+	inb(0x84);
+	inb(0x84);
+	inb(0x84);
+	inb(0x84);
+}
+
+uint8_t
+read_cmos(uint8_t reg)
+{
+	outb(IO_RTC_CMND, reg);
+	delay();
+	return inb(IO_RTC_DATA);
+}
+
+void
+write_cmos(uint8_t reg, uint8_t data)
+{
+	outb(IO_RTC_CMND, reg);
+	delay();
+	outb(IO_RTC_DATA, data);
+}
+
 void
 rtc_init(void)
 {
-	nmi_disable();
-	// LAB 4: your code here
+	int divider = 15;
 
+	nmi_disable();
+	write_cmos(0x8B, read_cmos(0x8B) | RTC_PIE); // Enable periodic interrupts
+	write_cmos(0x8A, (read_cmos(0x8A) & 0xF0) | divider);
 	nmi_enable();
 }
 
 uint8_t
 rtc_check_status(void)
 {
-	uint8_t status = 0;
-	// LAB 4: your code here
-
-	return status;
+	return read_cmos(0x8C);
 }
 
