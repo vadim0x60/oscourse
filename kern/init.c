@@ -5,6 +5,7 @@
 #include <inc/assert.h>
 
 #include <kern/monitor.h>
+#include <kern/tsc.h>
 #include <kern/console.h>
 #include <kern/env.h>
 #include <kern/trap.h>
@@ -27,6 +28,8 @@ i386_init(void)
 	// Can't call cprintf until after we do this!
 	cons_init();
 
+	tsc_calibrate();
+
 	cprintf("6828 decimal is %o octal!\n", 6828);
 	cprintf("END: %p\n", end);
 
@@ -40,11 +43,16 @@ i386_init(void)
 	irq_setmask_8259A(0xFFFF & ~(1<<IRQ_CLOCK) & ~(1<<IRQ_SLAVE));
 
 #ifdef CONFIG_KSPACE
+	//timer_start();
+	//timer_stop();
+
 	// Touch all you want.
 	ENV_CREATE_KERNEL_TYPE(prog_test1);
 	ENV_CREATE_KERNEL_TYPE(prog_test2);
 	ENV_CREATE_KERNEL_TYPE(prog_test3);
 	ENV_CREATE_KERNEL_TYPE(prog_test4);
+	ENV_CREATE_KERNEL_TYPE(prog_test5);
+	ENV_CREATE_KERNEL_TYPE(prog_test6);
 #endif
 
 	// Schedule and run the first user environment!

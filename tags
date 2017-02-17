@@ -33,6 +33,10 @@ assert_lines_match	gradelib.py	/^def assert_lines_match(text, *regexps, **kw):$/
 assert_lines_match_kw	gradelib.py	/^    def assert_lines_match_kw(no=[]):$/;"	kind:function	line:147
 breakpoint	gradelib.py	/^    def breakpoint(self, addr):$/;"	kind:member	line:372
 call_on_line	gradelib.py	/^def call_on_line(regexp, callback):$/;"	kind:function	line:569
+change_execution_flow	grade-lab5	/^def change_execution_flow(out):$/;"	kind:function	line:36
+check_start_after_start	grade-lab5	/^def check_start_after_start(line):$/;"	kind:function	line:77
+check_stop_with_start	grade-lab5	/^def check_stop_with_start(line, seconds):$/;"	kind:function	line:68
+check_stop_without_start	grade-lab5	/^def check_stop_without_start(line):$/;"	kind:function	line:64
 clock_thdlr_addr	grade-lab4	/^clock_thdlr_addr = 0$/;"	kind:variable	line:17
 close	gradelib.py	/^    def close(self):$/;"	kind:member	line:364
 color	gradelib.py	/^def color(name, text):$/;"	kind:function	line:236
@@ -54,12 +58,14 @@ get_symbol_address	gradelib.py	/^def get_symbol_address(s):$/;"	kind:function	li
 grade-lab1	grade-lab1	1;"	kind:file	line:1
 grade-lab3	grade-lab3	1;"	kind:file	line:1
 grade-lab4	grade-lab4	1;"	kind:file	line:1
+grade-lab5	grade-lab5	1;"	kind:file	line:1
 gradelib.py	gradelib.py	1;"	kind:file	line:1
 handle_output	gradelib.py	/^        def handle_output(output):$/;"	kind:function	line:575
 handle_read	gradelib.py	/^    def handle_read(self):$/;"	kind:function	line:296
 handle_read	gradelib.py	/^    def handle_read(self):$/;"	kind:member	line:335
 is_hex	grade-lab3	/^def is_hex(s):$/;"	kind:function	line:10
 is_hex	grade-lab4	/^def is_hex(s):$/;"	kind:function	line:10
+is_hex	grade-lab5	/^def is_hex(s):$/;"	kind:function	line:9
 kill	gradelib.py	/^    def kill(self):$/;"	kind:function	line:311
 load_icode_bytes	grade-lab3	/^load_icode_bytes = []$/;"	kind:variable	line:17
 make	gradelib.py	/^def make(*target):$/;"	kind:function	line:211
@@ -73,6 +79,7 @@ pre_make	gradelib.py	/^def pre_make():$/;"	kind:function	line:200
 r	grade-lab1	/^r = Runner(save("jos.out"),$/;"	kind:variable	line:6
 r	grade-lab3	/^r = Runner(save("jos.out"),$/;"	kind:variable	line:53
 r	grade-lab4	/^r = Runner(save("jos.out"),$/;"	kind:variable	line:60
+r	grade-lab5	/^r = Runner(save("jos.out"),$/;"	kind:variable	line:52
 register_test	gradelib.py	/^    def register_test(fn, title=title):$/;"	kind:function	line:26
 regs	grade-lab3	/^regs = []$/;"	kind:variable	line:25
 remove_breakpoint	gradelib.py	/^    def remove_breakpoint(self, addr):$/;"	kind:member	line:375
@@ -88,12 +95,17 @@ save_load_icode_bytes	grade-lab3	/^def save_load_icode_bytes(out):$/;"	kind:func
 save_on_finish	gradelib.py	/^    def save_on_finish(fail):$/;"	kind:function	line:519
 save_regs	grade-lab3	/^def save_regs(out):$/;"	kind:function	line:26
 save_res	grade-lab4	/^def save_res(out):$/;"	kind:function	line:42
+send_term	grade-lab5	/^def send_term(line):$/;"	kind:function	line:16
+send_timer_commands	grade-lab5	/^def send_timer_commands(line):$/;"	kind:function	line:22
 set_breakpoint_on_clock	grade-lab4	/^def set_breakpoint_on_clock(line):$/;"	kind:function	line:19
 setup_breakpoint	gradelib.py	/^def setup_breakpoint(runner, addr):$/;"	kind:function	line:538
 setup_call_on_line	gradelib.py	/^    def setup_call_on_line(runner):$/;"	kind:function	line:573
 setup_save	gradelib.py	/^    def setup_save(runner):$/;"	kind:function	line:513
 show_command	gradelib.py	/^def show_command(cmd):$/;"	kind:function	line:217
 show_part	gradelib.py	/^    def show_part():$/;"	kind:function	line:80
+sleep1	grade-lab5	/^sleep1 = -1$/;"	kind:variable	line:19
+sleep2	grade-lab5	/^sleep2 = -1$/;"	kind:variable	line:20
+sleep3	grade-lab5	/^sleep3 = -1$/;"	kind:variable	line:21
 stop	gradelib.py	/^    def stop(line):$/;"	kind:function	line:589
 stop_breakpoint	gradelib.py	/^def stop_breakpoint(addr):$/;"	kind:function	line:550
 stop_on_line	gradelib.py	/^def stop_on_line(regexp):$/;"	kind:function	line:585
@@ -113,13 +125,16 @@ test_frequency	grade-lab4	/^def test_frequency():$/;"	kind:function	line:98
 test_jos	grade-lab1	/^def test_jos():$/;"	kind:function	line:10
 test_jos	grade-lab3	/^def test_jos():$/;"	kind:function	line:65
 test_jos	grade-lab4	/^def test_jos():$/;"	kind:function	line:71
+test_jos	grade-lab5	/^def test_jos():$/;"	kind:function	line:60
 test_load_icode	grade-lab3	/^def test_load_icode():$/;"	kind:function	line:69
 test_printf	grade-lab1	/^def test_printf():$/;"	kind:function	line:14
 test_rtc	grade-lab4	/^def test_rtc():$/;"	kind:function	line:93
 test_sys_exit	grade-lab3	/^def test_sys_exit():$/;"	kind:function	line:74
+test_timer	grade-lab5	/^def test_timer():$/;"	kind:function	line:82
 time_diff	grade-lab4	/^time_diff = []$/;"	kind:variable	line:27
 update_regs	gradelib.py	/^    def update_regs(self, regs):$/;"	kind:member	line:384
 user_test	gradelib.py	/^    def user_test(self, binary, *monitors, **kw):$/;"	kind:member	line:487
 view_memory	gradelib.py	/^    def view_memory(self, addr, length):$/;"	kind:member	line:378
 view_regs	gradelib.py	/^    def view_regs(self):$/;"	kind:member	line:381
+view_regs_at_env_init	grade-lab5	/^def view_regs_at_env_init(out):$/;"	kind:function	line:45
 wait	gradelib.py	/^    def wait(self):$/;"	kind:function	line:306
