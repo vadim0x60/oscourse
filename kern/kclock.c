@@ -46,3 +46,17 @@ rtc_check_status(void)
 	return read_cmos(0x8C);
 }
 
+unsigned
+mc146818_read(unsigned reg)
+{
+	outb(IO_RTC_CMND, reg);
+	return inb(IO_RTC_DATA);
+}
+
+void
+mc146818_write(unsigned reg, unsigned datum)
+{
+	outb(IO_RTC_CMND, reg);
+	outb(IO_RTC_DATA, datum);
+}
+

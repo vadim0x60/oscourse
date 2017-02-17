@@ -38,7 +38,6 @@ test_alloc(uint8_t nbytes)
 	nunits = (nbytes + sizeof(Header) - 1) / sizeof(Header) + 1;
 
 	spin_lock(&lk);
-
 	if (freep == NULL) { /* no free list yet */
 		((Header *) &space)->s.next = (Header *) &base;
 		((Header *) &space)->s.prev = (Header *) &base;
@@ -59,7 +58,7 @@ test_alloc(uint8_t nbytes)
 				p += p->s.size;
 				p->s.size = nunits;
 			}
-
+			
 			spin_unlock(&lk);
 			return (void *)(p + 1);
 		}
@@ -69,8 +68,6 @@ test_alloc(uint8_t nbytes)
 			return NULL;
 		}
 	}
-
-	
 }
 
 /* free: put block ap in free list */
@@ -100,7 +97,10 @@ test_free(void *ap)
 	freep = p;
 
 	check_list();
+<<<<<<< HEAD
 
 	spin_unlock(&lk);
+=======
+>>>>>>> origin/lab6
 }
 
