@@ -49,9 +49,6 @@ i386_init(void)
 	irq_setmask_8259A(0xFFFF & ~(1<<IRQ_CLOCK) & ~(1<<IRQ_SLAVE));
 
 #ifdef CONFIG_KSPACE
-	//timer_start();
-	//timer_stop();
-
 	// Touch all you want.
 	ENV_CREATE_KERNEL_TYPE(prog_test1);
 	ENV_CREATE_KERNEL_TYPE(prog_test2);
