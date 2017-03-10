@@ -94,8 +94,6 @@ boot_alloc(uint32_t n)
 	// Allocate a chunk large enough to hold 'n' bytes, then update
 	// free_base.  Make sure free_base is kept aligned
 	// to a multiple of PGSIZE.
-	//
-	// LAB 6: Your code here.
 
 	result = free_base;
 
