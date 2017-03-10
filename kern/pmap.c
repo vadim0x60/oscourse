@@ -97,8 +97,6 @@ boot_alloc(uint32_t n)
 	// Allocate a chunk large enough to hold 'n' bytes, then update
 	// free_base.  Make sure free_base is kept aligned
 	// to a multiple of PGSIZE.
-	//
-	// LAB 6: Your code here.
 
 	result = free_base;
 
@@ -172,6 +170,8 @@ mem_init(void)
 	//      (ie. perm = PTE_U | PTE_P)
 	//    - pages itself -- kernel RW, user NONE
 	// Your code goes here:
+
+	boot_map_region()
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
