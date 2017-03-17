@@ -327,13 +327,17 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 		if (!create) return NULL;
 
 		struct PageInfo* pagetablepage = page_alloc(ALLOC_ZERO);
+		if (pagetablepage == NULL) return NULL;
+
 		pagetablepage->pp_ref++;
 
-		*pde = page2pa(pagetablepage) & PTE_P;
-		tlb_invalidate(pgdir, (void*)PTE_ADDR(*pde));
+		*pde = page2pa(pagetablepage) | PTE_P | PTE_W;
+		tlb_invalidate(pgdir, (void*)page2kva(pagetablepage));
+		tlb_invalidate(pgdir, (void*)va);
 	}
 
-	return (pte_t*)PTE_ADDR(*pde) + PTX(va);
+	pte_t* pte = (pte_t*)PTE_ADDR(*pde) + PTX(va);
+	return pte;
 }
 
 //
@@ -378,18 +382,20 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
+	page_remove(pgdir, va);
+
 	pte_t* pte = pgdir_walk(pgdir, va, true);
+	cprintf("pte %d\n", (int)pte);
 
-	struct PageInfo* oldpage = (*pte & PTE_P) ? pa2page(PTE_ADDR(pte)) : NULL;
-	struct PageInfo* newpage = pp;
-	
-	if (oldpage == newpage) return 0;
+	if (pte == NULL) {
+		// Out of memory
+		return -E_NO_MEM;
+	}
 
-	*pte = page2pa(newpage) | perm | PTE_P;
-	tlb_invalidate(pgdir, va);
-
-	page_decref(oldpage);
-	newpage->pp_ref++;
+	cprintf("miew");
+	*pte = (pte_t)(page2pa(pp) | perm | PTE_P);
+	cprintf("miew");
+	pp->pp_ref++;	
 
 	return 0;
 }
@@ -430,9 +436,11 @@ page_remove(pde_t *pgdir, void *va)
 {
 	pte_t* pte;
 	struct PageInfo* page = page_lookup(pgdir, va, &pte);
-	if (pte != NULL) tlb_invalidate(pgdir, va);
-	*pte = 0;
 	
+	if (page == NULL) return;
+
+	*pte = 0;
+	tlb_invalidate(pgdir, va);	
 	page_decref(page);
 }
 
