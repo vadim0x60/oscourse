@@ -255,6 +255,35 @@ page_init(void)
 	}
 }
 
+void 
+print_sequence(int start, int end, bool allocated) {
+	if (allocated) cprintf("%d..%d ALLOCATED\n", start, end);
+	else cprintf("%d..%d FREE\n", start, end);
+}
+
+void
+page_print(void) {
+	size_t i;
+	
+	int sequence_start = 1;
+	bool allocated = false;
+	bool sequence_allocated = pages[0].pp_link == NULL && page_free_list != &pages[0];
+
+	for (i = 1; i < npages; i++) {
+		allocated = pages[i].pp_link == NULL && page_free_list != &pages[i];
+
+		if (i == sequence_start) sequence_allocated = allocated;
+		else if (sequence_allocated != allocated) {
+			print_sequence(sequence_start, i-1, sequence_allocated);
+
+			sequence_start = i;
+			sequence_allocated = allocated;				
+		}
+	}
+
+	print_sequence(sequence_start, i-1, allocated);
+}
+
 //
 // Allocates a physical page.  If (alloc_flags & ALLOC_ZERO), fills the entire
 // returned physical page with '\0' bytes.  Does NOT increment the reference
@@ -276,7 +305,8 @@ page_alloc(int alloc_flags)
 	if (alloc_flags & ALLOC_ZERO) memset(page2kva(page), '\0', PGSIZE);
 	page->pp_ref = 0;
 
-	page_free_list = page->pp_link;
+	if (page_free_list == page->pp_link) page_free_list = NULL;
+	else page_free_list = page->pp_link;
 	page->pp_link = NULL;
 	return page;
 }
