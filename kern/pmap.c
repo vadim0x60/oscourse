@@ -155,6 +155,12 @@ mem_init(void)
 
 	check_page_free_list(1);
 	check_page_alloc();
+
+	// Uncomment below to test page allocation
+	
+	//page_alloc(0);
+	//page_alloc(0);
+	//assert(false);
 }
 
 // --------------------------------------------------------------
@@ -189,6 +195,35 @@ page_init(void)
 	}
 }
 
+void 
+print_sequence(int start, int end, bool allocated) {
+	if (allocated) cprintf("%d..%d ALLOCATED\n", start, end);
+	else cprintf("%d..%d FREE\n", start, end);
+}
+
+void
+page_print(void) {
+	size_t i;
+	
+	int sequence_start = 1;
+	bool allocated = false;
+	bool sequence_allocated = pages[0].pp_link == NULL && page_free_list != &pages[0];
+
+	for (i = 1; i < npages; i++) {
+		allocated = pages[i].pp_link == NULL && page_free_list != &pages[i];
+
+		if (i == sequence_start) sequence_allocated = allocated;
+		else if (sequence_allocated != allocated) {
+			print_sequence(sequence_start, i-1, sequence_allocated);
+
+			sequence_start = i;
+			sequence_allocated = allocated;				
+		}
+	}
+
+	print_sequence(sequence_start, i-1, allocated);
+}
+
 //
 // Allocates a physical page.  If (alloc_flags & ALLOC_ZERO), fills the entire
 // returned physical page with '\0' bytes.  Does NOT increment the reference
@@ -210,7 +245,8 @@ page_alloc(int alloc_flags)
 	if (alloc_flags & ALLOC_ZERO) memset(page2kva(page), '\0', PGSIZE);
 	page->pp_ref = 0;
 
-	page_free_list = page->pp_link;
+	if (page_free_list == page->pp_link) page_free_list = NULL;
+	else page_free_list = page->pp_link;
 	page->pp_link = NULL;
 	return page;
 }
@@ -255,21 +291,7 @@ page_decref(struct PageInfo* pp)
 pte_t *
 pgdir_walk(pde_t *pgdir, const void *va, int create)
 {
-	pte_t* pt = (pte_t*)PTE_ADDR(*(pgdir + PDX(va)));
-
-	if (pt == NULL) {
-		if (!create) return NULL;
-
-		struct PageInfo* pagetablepage = page_alloc(ALLOC_ZERO);
-		if (pagetablepage == NULL) return NULL;
-
-		pagetablepage->pp_ref++;
-
-		*pt = page2pa(pagetablepage) & PTE_P;
-		tlb_invalidate(pgdir, pt);
-	}
-
-	return pt + PTX(va);
+	return NULL;
 }
 
 //
@@ -285,8 +307,6 @@ pgdir_walk(pde_t *pgdir, const void *va, int create)
 static void
 boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm)
 {
-	pte_t* pte = pgdir_walk(pgdir, (void*)va, true);
-	*pte = pa | perm | PTE_P;
 }
 
 //
@@ -308,20 +328,6 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
-	pte_t* pte = pgdir_walk(pgdir, va, true);
-	if (pte == NULL) return -E_NO_MEM;
-
-	struct PageInfo* oldpage = (*pte & PTE_P) ? pa2page(PTE_ADDR(pte)) : NULL;
-	struct PageInfo* newpage = pp;
-	
-	if (oldpage == newpage) return 0;
-
-	*pte = page2pa(newpage) | perm | PTE_P;
-	tlb_invalidate(pgdir, va);
-
-	page_decref(oldpage);
-	newpage->pp_ref++;
-
 	return 0;
 }
 
@@ -337,9 +343,7 @@ page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 struct PageInfo *
 page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 {
-	pte_t* pte = pgdir_walk(pgdir, va, false);
-	if (pte_store != NULL) *pte_store = pte;
-	return pa2page(PTE_ADDR(pte));
+	return NULL;
 }
 
 //
@@ -357,12 +361,6 @@ page_lookup(pde_t *pgdir, void *va, pte_t **pte_store)
 void
 page_remove(pde_t *pgdir, void *va)
 {
-	pte_t* pte;
-	struct PageInfo* page = page_lookup(pgdir, va, &pte);
-	if (pte != NULL) tlb_invalidate(pgdir, va);
-	*pte = 0;
-	
-	page_decref(page);
 }
 
 //

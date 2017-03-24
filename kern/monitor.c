@@ -29,7 +29,8 @@ static struct Command commands[] = {
 	{ "42", "But what was the question?", mon_42 },
 	{ "backtrace", "Stack backtrace", mon_backtrace },
 	{ "timer_start", "Start timer", mon_timer_start },
-	{ "timer_stop", "Stop timer", mon_timer_stop }
+	{ "timer_stop", "Stop timer", mon_timer_stop },
+	{ "pages", "Show page allocation status", mon_pages }
 };
 #define NCOMMANDS (sizeof(commands)/sizeof(commands[0]))
 
@@ -42,6 +43,13 @@ mon_help(int argc, char **argv, struct Trapframe *tf)
 
 	for (i = 0; i < NCOMMANDS; i++)
 		cprintf("%s - %s\n", commands[i].name, commands[i].desc);
+	return 0;
+}
+
+int
+mon_pages(int argc, char **argv, struct Trapframe *tf)
+{
+	page_print();
 	return 0;
 }
 
