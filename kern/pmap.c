@@ -415,9 +415,6 @@ boot_map_region(pde_t *pgdir, uintptr_t va, size_t size, physaddr_t pa, int perm
 int
 page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 {
-	cprintf("page_insert: %d", (int)pp);
-	cprintf("virtual address: %d", (int)va);
-
 	pte_t* pte = pgdir_walk(pgdir, va, true);
 
 	if (!pte) {
@@ -441,9 +438,6 @@ page_insert(pde_t *pgdir, struct PageInfo *pp, void *va, int perm)
 		*pte = new_pte;			
 		tlb_invalidate(pgdir, va);
 	}	
-
-	cprintf("va2pa %d", check_va2pa(pgdir, (uintptr_t)va));
-	cprintf("page2pa %d", page2pa(pp));
 
 	return 0;
 }
