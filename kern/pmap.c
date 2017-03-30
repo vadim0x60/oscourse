@@ -99,6 +99,7 @@ boot_alloc(uint32_t n)
 	// free_base.  Make sure free_base is kept aligned
 	// to a multiple of PGSIZE.
 
+	n = ROUNDUP(n, PGSIZE);
 	result = free_base;
 
 	while (n > 0) {
@@ -154,6 +155,10 @@ mem_init(void)
 	// Make 'envs' point to an array of size 'NENV' of 'struct Env'.
 	// LAB 8: Your code here.
 
+	int envs_size = ROUNDUP(NENV * sizeof(struct Env), PGSIZE);
+	envs = boot_alloc(envs_size);
+	memset(envs, 0, envs_size);
+
 	//////////////////////////////////////////////////////////////////////
 	// Now that we've allocated the initial kernel data structures, we set
 	// up the list of free physical pages. Once we've done so, all further
@@ -187,6 +192,8 @@ mem_init(void)
 	//    - the new image at UENVS  -- kernel R, user R
 	//    - envs itself -- kernel RW, user NONE
 	// LAB 8: Your code here.
+
+	boot_map_region(kern_pgdir, UENVS, envs_size, PADDR(envs), PTE_U | PTE_P);
 
 	//////////////////////////////////////////////////////////////////////
 	// Use the physical memory that 'bootstack' refers to as the kernel
