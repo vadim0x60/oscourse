@@ -73,8 +73,65 @@ void
 trap_init(void)
 {
 //	extern struct Segdesc gdt[];
+	extern void (*divide_thdlr)(void);
+	extern void (*debug_thdlr)(void);
+	extern void (*nmi_thdlr)(void);
+	extern void (*brkpt_thdlr)(void);
+	extern void (*overflow_thdlr)(void);
+	extern void (*bound_thdlr)(void);
+	extern void (*illop_thdlr)(void);
+	extern void (*device_thdlr)(void);
+	extern void (*dblflt_thdlr)(void);
+	extern void (*tss_thdlr)(void);
+	extern void (*sefnp_thdlr)(void);
+	extern void (*stack_thdlr)(void);
+	extern void (*gpflt_thdlr)(void);
+	extern void (*pgflt_thdlr)(void);
+	extern void (*fperr_thdlr)(void);
+	extern void (*align_thdlr)(void);
+	extern void (*mchk_thdlr)(void);
+	extern void (*simderr_thdlr)(void);
 
-	// LAB 8: Your code here.
+	extern void (*syscall_thdlr)(void);
+	extern void (*default_thdlr)(void);	
+
+	extern void (*timer_thdlr)(void);
+	extern void (*kbd_thdlr)(void);
+	extern void (*serial_thdlr)(void);
+	extern void (*spurious_thdlr)(void);
+	extern void (*ide_thdlr)(void);
+	extern void (*error_thdlr)(void);
+	extern void (*clock_thdlr)(void);
+
+	SETGATE(idt[T_DIVIDE], 0, GD_KT, (int)(&divide_thdlr), 0);
+	SETGATE(idt[T_DEBUG], 0, GD_KT, (int)(&debug_thdlr), 0);
+	SETGATE(idt[T_NMI], 0, GD_KT, (int)(&nmi_thdlr), 0);
+	SETGATE(idt[T_BRKPT], 0, GD_KT, (int)(&brkpt_thdlr), 0);
+	SETGATE(idt[T_OFLOW], 0, GD_KT, (int)(&overflow_thdlr), 0);
+	SETGATE(idt[T_BOUND], 0, GD_KT, (int)(&bound_thdlr), 0);
+	SETGATE(idt[T_ILLOP], 0, GD_KT, (int)(&illop_thdlr), 0);
+	SETGATE(idt[T_DEVICE], 0, GD_KT, (int)(&device_thdlr), 0);
+	SETGATE(idt[T_DBLFLT], 0, GD_KT, (int)(&dblflt_thdlr), 0);
+	SETGATE(idt[T_TSS], 0, GD_KT, (int)(&tss_thdlr), 0);
+	SETGATE(idt[T_SEGNP], 0, GD_KT, (int)(&sefnp_thdlr), 0);
+	SETGATE(idt[T_STACK], 0, GD_KT, (int)(&stack_thdlr), 0);
+	SETGATE(idt[T_GPFLT], 0, GD_KT, (int)(&gpflt_thdlr), 0);
+	SETGATE(idt[T_PGFLT], 0, GD_KT, (int)(&pgflt_thdlr), 0);
+	SETGATE(idt[T_FPERR], 0, GD_KT, (int)(&fperr_thdlr), 0);
+	SETGATE(idt[T_ALIGN], 0, GD_KT, (int)(&align_thdlr), 0);
+	SETGATE(idt[T_MCHK], 0, GD_KT, (int)(&mchk_thdlr), 0);
+	SETGATE(idt[T_SIMDERR], 0, GD_KT, (int)(&simderr_thdlr), 0);
+
+	SETGATE(idt[T_SYSCALL], 0, GD_KT, (int)(&syscall_thdlr), 0);
+	SETGATE(idt[T_DEFAULT], 0, GD_KT, (int)(&default_thdlr), 0);	
+
+	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], 0, GD_KT, (int)(&timer_thdlr), 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_KBD], 0, GD_KT, (int)(&kbd_thdlr),0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_SERIAL], 0, GD_KT, (int)(&serial_thdlr), 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_SPURIOUS], 0, GD_KT, (int)(&spurious_thdlr), 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_IDE], 0, GD_KT, (int)(&ide_thdlr), 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_ERROR], 0, GD_KT, (int)(&error_thdlr), 0);
+	SETGATE(idt[IRQ_OFFSET + IRQ_CLOCK], 0, GD_KT, (int)(&clock_thdlr), 0);
 
 	// Per-CPU setup 
 	trap_init_percpu();

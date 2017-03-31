@@ -13,14 +13,14 @@ void sched_halt(void);
 void
 sched_yield(void)
 {
-	struct Env* startenv = curenv ? curenv + 1 : envs;
+	struct Env* startenv = curenv ? curenv : envs;
 	struct Env* env = startenv;
 
 	do {
-		if (env == (envs + NENV)) env = envs;
-		if (env->env_status == ENV_RUNNABLE || env->env_status == ENV_RUNNING) env_run(env);
-
 		env++;
+
+		if (env == (envs + NENV)) env = envs;
+		if (env->env_status == ENV_RUNNABLE || env->env_status == ENV_RUNNING) env_run(env);		
 	}
 	while (env != startenv);
 	
