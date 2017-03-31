@@ -21,10 +21,7 @@ sys_cputs(const char *s, size_t len)
 	// Destroy the environment if not.
 
 	// LAB 8: Your code here.
-	if (!(*pgdir_walk(curenv->env_pgdir, s, false) & PTE_U)) {
-		cprintf("You have no rights to this memory. Destroying you\n");
-		env_destroy(curenv);
-	}
+	user_mem_assert(curenv, s, len, PTE_U);
 
 	// Print the string supplied by the user.
 	cprintf("%.*s", len, s);
