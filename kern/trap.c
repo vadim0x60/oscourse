@@ -229,7 +229,6 @@ trap_dispatch(struct Trapframe *tf)
 
 	// Handle system calls
 	if (tf->tf_trapno == T_SYSCALL) {
-		cprintf("System call\n");
 		tf->tf_regs.reg_eax = syscall(  tf->tf_regs.reg_eax, 
 										tf->tf_regs.reg_edx, 
 										tf->tf_regs.reg_ecx, 
@@ -237,6 +236,12 @@ trap_dispatch(struct Trapframe *tf)
 										tf->tf_regs.reg_esi,
 										tf->tf_regs.reg_edi  );
 		sched_yield();
+		return;
+	}
+
+	// Handle system calls
+	if (tf->tf_trapno == T_BRKPT) {
+		monitor(tf);
 		return;
 	}
 
