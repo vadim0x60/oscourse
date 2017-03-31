@@ -152,7 +152,6 @@ debuginfo_eip(uintptr_t addr, struct Eipdebuginfo *info)
 
 		// Make sure the STABS and string table memory is valid.
 		// LAB 8: Your code here.
-
 		if (user_mem_check(curenv, stabs, (int)(stab_end - stabs), 0) ||
 			user_mem_check(curenv, stabs, (int)(stabstr_end - stabstr), 0)) {
 				return -1;

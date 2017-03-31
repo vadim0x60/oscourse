@@ -64,6 +64,7 @@ void 	page_print(void);
 
 void	tlb_invalidate(pde_t *pgdir, void *va);
 
+void *	mmio_map_region(physaddr_t pa, size_t size);
 int	user_mem_check(struct Env *env, const void *va, size_t len, int perm);
 void	user_mem_assert(struct Env *env, const void *va, size_t len, int perm);
 

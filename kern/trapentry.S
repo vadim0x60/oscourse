@@ -65,7 +65,7 @@ _alltraps:
 	mov %ax, %es
 	pushl %esp
 	call trap
-	jmp .
+    jmp .
 
 .globl clock_thdlr
 .type clock_thdlr, @function;
