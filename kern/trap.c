@@ -106,7 +106,7 @@ trap_init(void)
 	SETGATE(idt[T_DIVIDE], 0, GD_KT, (int)(&divide_thdlr), 0);
 	SETGATE(idt[T_DEBUG], 0, GD_KT, (int)(&debug_thdlr), 0);
 	SETGATE(idt[T_NMI], 0, GD_KT, (int)(&nmi_thdlr), 0);
-	SETGATE(idt[T_BRKPT], 0, GD_KT, (int)(&brkpt_thdlr), 0);
+	SETGATE(idt[T_BRKPT], 0, GD_KT, (int)(&brkpt_thdlr), 3);
 	SETGATE(idt[T_OFLOW], 0, GD_KT, (int)(&overflow_thdlr), 0);
 	SETGATE(idt[T_BOUND], 0, GD_KT, (int)(&bound_thdlr), 0);
 	SETGATE(idt[T_ILLOP], 0, GD_KT, (int)(&illop_thdlr), 0);
@@ -122,7 +122,7 @@ trap_init(void)
 	SETGATE(idt[T_MCHK], 0, GD_KT, (int)(&mchk_thdlr), 0);
 	SETGATE(idt[T_SIMDERR], 0, GD_KT, (int)(&simderr_thdlr), 0);
 
-	SETGATE(idt[T_SYSCALL], 0, GD_KT, (int)(&syscall_thdlr), 0);
+	SETGATE(idt[T_SYSCALL], 0, GD_KT, (int)(&syscall_thdlr), 3);
 	SETGATE(idt[T_DEFAULT], 0, GD_KT, (int)(&default_thdlr), 0);	
 
 	SETGATE(idt[IRQ_OFFSET + IRQ_TIMER], 0, GD_KT, (int)(&timer_thdlr), 0);
@@ -223,11 +223,21 @@ trap_dispatch(struct Trapframe *tf)
 	// Handle page faults
 	if (tf->tf_trapno == T_PGFLT) {
 		page_fault_handler(tf);
+		sched_yield();
 		return;
 	}
 
 	// Handle system calls
 	if (tf->tf_trapno == T_SYSCALL) {
+		cprintf("System call\n");
+		tf->tf_regs.reg_eax = syscall(  tf->tf_regs.reg_eax, 
+										tf->tf_regs.reg_edx, 
+										tf->tf_regs.reg_ecx, 
+										tf->tf_regs.reg_ebx,
+										tf->tf_regs.reg_esi,
+										tf->tf_regs.reg_edi  );
+		sched_yield();
+		return;
 	}
 
 	// Handle spurious interrupts
