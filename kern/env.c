@@ -211,6 +211,10 @@ env_setup_vm(struct Env *e)
 
 	// LAB 8: Your code here.
 
+	e->env_pgdir = page2kva(p);
+	p->pp_ref = 1;
+	memcpy(e->env_pgdir, kern_pgdir, PGSIZE);
+
 	// UVPT maps the env's own page table read-only.
 	// Permissions: kernel R, user R
 	e->env_pgdir[PDX(UVPT)] = PADDR(e->env_pgdir) | PTE_P | PTE_U;
@@ -304,25 +308,6 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 	return 0;
 }
 
-//
-// Allocate len bytes of physical memory for environment env,
-// and map it at virtual address va in the environment's address space.
-// Does not zero or otherwise initialize the mapped pages in any way.
-// Pages should be writable by user and kernel.
-// Panic if any allocation attempt fails.
-//
-static void
-region_alloc(struct Env *e, void *va, size_t len)
-{
-	// LAB 8: Your code here.
-	// (But only if you need it for load_icode.)
-	//
-	// Hint: It is easier to use region_alloc if the caller can pass
-	//   'va' and 'len' values that are not page-aligned.
-	//   You should round va down, and round (va + len) up.
-	//   (Watch out for corner-cases!)
-}
-
 #ifdef CONFIG_KSPACE
 static void
 bind_functions(struct Env *e, struct Elf *elf)
@@ -366,6 +351,19 @@ bind_functions(struct Env *e, struct Elf *elf)
 }
 #endif
 
+static void* 
+env_add_page(struct Env *e, void* eva) {
+	// EVA - Environment virtual address
+
+	struct PageInfo* page = page_alloc(0);
+
+	if (!page || page_insert(e->env_pgdir, page, eva, PTE_U | PTE_W)) {
+		panic("Failed to allocate a page for an environment!");
+	}
+
+	return page2kva(page);
+}
+
 //
 // Set up the initial program binary, stack, and processor flags
 // for a user process.
@@ -404,21 +402,29 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 		if (ph->p_type != ELF_PROG_LOAD) continue;
 
 		uint8_t *src = (uint8_t*) (binary + ph->p_offset);
-		uint8_t *dest = (uint8_t*) ph->p_va;
+		uint8_t *dest_eva = (uint8_t*) ph->p_va;
+		uint8_t *dest_kva = NULL;
+		uint8_t *page_end = NULL;
 
 		int count = 0;
+		int mod = (int)dest_eva % PGSIZE;
 
-		while(count < ph->p_filesz) {
-			*dest = *src;
-			src++;
-			dest++;
-			count++;
-		}
+		dest_kva = env_add_page(e, dest_eva - mod);
+		page_end = dest_kva + PGSIZE;
+		dest_kva += mod;
 
 		while(count < ph->p_memsz) {
-			*dest = 0;
+			if (page_end == dest_kva) {
+				dest_kva = env_add_page(e, dest_eva);
+				page_end = dest_kva + PGSIZE;
+			}
+
+			*dest_kva = count < ph->p_filesz ? *src : 0;
+
+			src++;
+			dest_kva++;
+			dest_eva++;
 			count++;
-			dest++;
 		}
 	}
 
@@ -432,6 +438,7 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 	// Now map one page for the program's initial stack
 	// at virtual address USTACKTOP - PGSIZE.
 	// LAB 8: Your code here.
+	env_add_page(e, (void*)(USTACKTOP-PGSIZE));
 }
 
 //
@@ -444,10 +451,10 @@ load_icode(struct Env *e, uint8_t *binary, size_t size)
 void
 env_create(uint8_t *binary, size_t size, enum EnvType type)
 {
-	struct Env ** env = NULL;
-	env_alloc(env, 0);
-	(**env).env_type = type;
-	load_icode(*env, binary, size);
+	struct Env *env = NULL;
+	env_alloc(&env, 0);
+	(*env).env_type = type;
+	load_icode(env, binary, size);
 }
 
 //
@@ -625,6 +632,10 @@ env_run(struct Env *e)
 	curenv = e;
 	curenv->env_status = ENV_RUNNING;
 	curenv->env_runs++;
+
+	// Switch to the environment's memory sandbox 
+	// by changing the pagedir to env_pgdir
+	lcr3(PADDR(e->env_pgdir));
 
 	env_pop_tf(&e->env_tf);
 }
