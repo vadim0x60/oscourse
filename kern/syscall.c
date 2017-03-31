@@ -64,8 +64,6 @@ sys_env_destroy(envid_t envid)
 	return 0;
 }
 
-<<<<<<< HEAD
-=======
 // Deschedule current environment and pick a different one to run.
 static void
 sys_yield(void)
@@ -266,7 +264,6 @@ sys_ipc_recv(void *dstva)
 	return 0;
 }
 
->>>>>>> origin/lab9
 // Dispatches to the correct kernel function, passing the arguments.
 int32_t
 syscall(uint32_t syscallno, uint32_t a1, uint32_t a2, uint32_t a3, uint32_t a4, uint32_t a5)

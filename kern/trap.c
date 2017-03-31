@@ -73,7 +73,6 @@ void
 trap_init(void)
 {
 //	extern struct Segdesc gdt[];
-<<<<<<< HEAD
 	extern void (*divide_thdlr)(void);
 	extern void (*debug_thdlr)(void);
 	extern void (*nmi_thdlr)(void);
@@ -133,10 +132,6 @@ trap_init(void)
 	SETGATE(idt[IRQ_OFFSET + IRQ_IDE], 0, GD_KT, (int)(&ide_thdlr), 0);
 	SETGATE(idt[IRQ_OFFSET + IRQ_ERROR], 0, GD_KT, (int)(&error_thdlr), 0);
 	SETGATE(idt[IRQ_OFFSET + IRQ_CLOCK], 0, GD_KT, (int)(&clock_thdlr), 0);
-=======
-
-	// LAB 8: Your code here.
->>>>>>> origin/lab9
 
 	// Per-CPU setup 
 	trap_init_percpu();
