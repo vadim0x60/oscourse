@@ -220,6 +220,16 @@ trap_dispatch(struct Trapframe *tf)
 {
 	// Handle processor exceptions.
 
+	// Handle page faults
+	if (tf->tf_trapno == T_PGFLT) {
+		page_fault_handler(tf);
+		return;
+	}
+
+	// Handle system calls
+	if (tf->tf_trapno == T_SYSCALL) {
+	}
+
 	// Handle spurious interrupts
 	// The hardware sometimes raises these because of noise on the
 	// IRQ line or other reasons. We don't care.
