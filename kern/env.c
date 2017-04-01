@@ -313,25 +313,6 @@ env_alloc(struct Env **newenv_store, envid_t parent_id)
 	return 0;
 }
 
-//
-// Allocate len bytes of physical memory for environment env,
-// and map it at virtual address va in the environment's address space.
-// Does not zero or otherwise initialize the mapped pages in any way.
-// Pages should be writable by user and kernel.
-// Panic if any allocation attempt fails.
-//
-static void
-region_alloc(struct Env *e, void *va, size_t len)
-{
-	// LAB 8: Your code here.
-	// (But only if you need it for load_icode.)
-	//
-	// Hint: It is easier to use region_alloc if the caller can pass
-	//   'va' and 'len' values that are not page-aligned.
-	//   You should round va down, and round (va + len) up.
-	//   (Watch out for corner-cases!)
-}
-
 #ifdef CONFIG_KSPACE
 static void
 bind_functions(struct Env *e, struct Elf *elf)
