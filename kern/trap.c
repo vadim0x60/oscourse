@@ -420,7 +420,7 @@ page_fault_handler(struct Trapframe *tf)
 
 	struct UTrapframe *utrap = (struct UTrapframe*)sp;
 	utrap->utf_fault_va = fault_va;
-	utrap->utf_err = T_PGFLT;
+	utrap->utf_err = tf->tf_err;
 
 	utrap->utf_eip = tf->tf_eip;
 	utrap->utf_esp = tf->tf_esp;
