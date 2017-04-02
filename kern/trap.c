@@ -372,12 +372,65 @@ page_fault_handler(struct Trapframe *tf)
 	//   To change what the user environment runs, modify 'curenv->env_tf'
 	//   (the 'tf' variable points at 'curenv->env_tf').
 
-	// LAB 9: Your code here.
+	// LAB 9: My code here:
 
-	// Destroy the environment that caused the fault.
-	cprintf("[%08x] user fault va %08x ip %08x\n",
-		curenv->env_id, fault_va, tf->tf_eip);
-	print_trapframe(tf);
-	env_destroy(curenv);
+	cprintf("Page fault in user space\n");
+
+	if (!curenv->env_pgfault_upcall) {
+		cprintf("[%08x] user fault va %08x ip %08x\n",
+			curenv->env_id, fault_va, tf->tf_eip);
+		print_trapframe(tf);
+		env_destroy(curenv);
+	}
+
+	// Map the user exception stack for ourselves
+	pte_t *pte;
+	struct PageInfo* ex_page;
+
+	if (!(ex_page = page_lookup(curenv->env_pgdir, (void*)(UXSTACKTOP - PGSIZE), &pte)) || 
+		!(*pte & PTE_U) || !(*pte & PTE_W)) {
+		cprintf("Exception stack not allocated properly \n");
+		env_destroy(curenv);
+	}
+
+	if (page_insert(kern_pgdir, ex_page, (void*)(UXSTACKTOP - PGSIZE), PTE_W)) {
+		cprintf("The kernel is out of memory so it has to kill you. Sorry \n");
+		env_destroy(curenv);
+	}
+	
+	// If we did this:
+	// curenv->env_pgfault_upcall(utrapframe);
+	// the upcall would operate in kernel mode. 
+	// So we do this:
+
+	uintptr_t sp;
+	if (tf->tf_esp < UXSTACKTOP && tf->tf_esp > (UXSTACKTOP - PGSIZE))
+		sp = tf->tf_esp; // We're already in the exception stack
+	else 
+		sp = UXSTACKTOP; // This is the first frame in the exception stack
+
+	sp-= 4;
+	sp -= sizeof(struct UTrapframe);
+
+	if (sp < UXSTACKTOP - PGSIZE) {
+		// The error stack is over
+		// So is this environment's life
+		env_destroy(curenv); 
+	}
+
+	struct UTrapframe *utrap = (struct UTrapframe*)sp;
+	utrap->utf_fault_va = fault_va;
+	utrap->utf_err = T_PGFLT;
+
+	utrap->utf_eip = tf->tf_eip;
+	utrap->utf_esp = tf->tf_esp;
+	utrap->utf_eflags = tf->tf_eflags;
+	memcpy(&utrap->utf_regs, &tf->tf_regs, sizeof(struct PushRegs));
+
+	tf->tf_eip = (uintptr_t)curenv->env_pgfault_upcall;
+	tf->tf_esp = sp;
+	env_run(curenv);
+
+	// TODO: Why don't we use %ebp in the exception stack?
 }
 
