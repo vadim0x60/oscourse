@@ -374,8 +374,6 @@ page_fault_handler(struct Trapframe *tf)
 
 	// LAB 9: My code here:
 
-	cprintf("Page fault in user space\n");
-
 	if (!curenv->env_pgfault_upcall) {
 		cprintf("[%08x] user fault va %08x ip %08x\n",
 			curenv->env_id, fault_va, tf->tf_eip);
@@ -384,14 +382,11 @@ page_fault_handler(struct Trapframe *tf)
 	}
 
 	// Map the user exception stack for ourselves
-	pte_t *pte;
 	struct PageInfo* ex_page;
 
-	if (!(ex_page = page_lookup(curenv->env_pgdir, (void*)(UXSTACKTOP - PGSIZE), &pte)) || 
-		!(*pte & PTE_U) || !(*pte & PTE_W)) {
-		cprintf("Exception stack not allocated properly \n");
-		env_destroy(curenv);
-	}
+	user_mem_assert(curenv, (void*)(UXSTACKTOP - PGSIZE), PGSIZE, PTE_U | PTE_W);
+
+	ex_page = page_lookup(curenv->env_pgdir, (void*)(UXSTACKTOP - PGSIZE), NULL);
 
 	if (page_insert(kern_pgdir, ex_page, (void*)(UXSTACKTOP - PGSIZE), PTE_W)) {
 		cprintf("The kernel is out of memory so it has to kill you. Sorry \n");
