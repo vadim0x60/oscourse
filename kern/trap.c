@@ -382,34 +382,31 @@ page_fault_handler(struct Trapframe *tf)
 
 	user_mem_assert(curenv, (void*)(UXSTACKTOP - PGSIZE), PGSIZE, PTE_U | PTE_W);
 
+	// So I guess that's why we mapped the entire physical memory for the kernel
 	ex_page = page_lookup(curenv->env_pgdir, (void*)(UXSTACKTOP - PGSIZE), NULL);
-
-	if (page_insert(kern_pgdir, ex_page, (void*)(UXSTACKTOP - PGSIZE), PTE_W)) {
-		cprintf("The kernel is out of memory so it has to kill you. Sorry \n");
-		env_destroy(curenv);
-	}
+	uintptr_t MAPUXSTACKTOP = KERNBASE + page2pa(ex_page) + PGSIZE;
 	
 	// If we did this:
 	// curenv->env_pgfault_upcall(utrapframe);
 	// the upcall would operate in kernel mode. 
 	// So we do this:
 
-	uintptr_t sp;
+	int sp_offset;
 	if (tf->tf_esp < UXSTACKTOP && tf->tf_esp > (UXSTACKTOP - PGSIZE))
-		sp = tf->tf_esp; // We're already in the exception stack
+		sp_offset = tf->tf_esp - UXSTACKTOP; // We're already in the exception stack
 	else 
-		sp = UXSTACKTOP; // This is the first frame in the exception stack
+		sp_offset = 0; // This is the first frame in the exception stack
 
-	sp-= 4;
-	sp -= sizeof(struct UTrapframe);
+	sp_offset -= 4;
+	sp_offset -= sizeof(struct UTrapframe);
 
-	if (sp < UXSTACKTOP - PGSIZE) {
+	if (sp_offset < -PGSIZE) {
 		// The error stack is over
 		// So is this environment's life
 		env_destroy(curenv); 
 	}
 
-	struct UTrapframe *utrap = (struct UTrapframe*)sp;
+	struct UTrapframe *utrap = (struct UTrapframe*)(MAPUXSTACKTOP + sp_offset);
 	utrap->utf_fault_va = fault_va;
 	utrap->utf_err = tf->tf_err;
 
@@ -419,7 +416,7 @@ page_fault_handler(struct Trapframe *tf)
 	memcpy(&utrap->utf_regs, &tf->tf_regs, sizeof(struct PushRegs));
 
 	tf->tf_eip = (uintptr_t)curenv->env_pgfault_upcall;
-	tf->tf_esp = sp;
+	tf->tf_esp = UXSTACKTOP + sp_offset;
 	env_run(curenv);
 
 	// TODO: Why don't we use %ebp in the exception stack?
