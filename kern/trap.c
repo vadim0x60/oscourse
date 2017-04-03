@@ -289,10 +289,6 @@ trap(struct Trapframe *tf)
 	// the interrupt path.
 	assert(!(read_eflags() & FL_IF));
 
-	if (debug) {
-		cprintf("Incoming TRAP frame at %p\n", tf);
-	}
-
 	assert(curenv);
 
 	// Garbage collect if current enviroment is a zombie
