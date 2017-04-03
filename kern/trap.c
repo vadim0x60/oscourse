@@ -380,7 +380,6 @@ page_fault_handler(struct Trapframe *tf)
 	// Map the user exception stack for ourselves
 	struct PageInfo* ex_page;
 
-	user_mem_assert(curenv, (void*)(UXSTACKTOP - PGSIZE), PGSIZE, PTE_U | PTE_W);
 
 	// So I guess that's why we mapped the entire physical memory for the kernel
 	ex_page = page_lookup(curenv->env_pgdir, (void*)(UXSTACKTOP - PGSIZE), NULL);
@@ -399,6 +398,8 @@ page_fault_handler(struct Trapframe *tf)
 
 	sp_offset -= 4;
 	sp_offset -= sizeof(struct UTrapframe);
+
+	user_mem_assert(curenv, (void*)(UXSTACKTOP + sp_offset), -sp_offset, PTE_U | PTE_W);
 
 	if (sp_offset < -PGSIZE) {
 		// The error stack is over
