@@ -108,13 +108,14 @@ fork(void)
 {
 	// LAB 9: My code here:
 	int ret, i, tab_i, tab_end;
+	int ntab = UTOP / (PGSIZE * NPTENTRIES);
 	set_pgfault_handler(pgfault);
 	ret = sys_exofork();
 
 	if (ret > 0) {
 		// We're the parent
 
-		for (tab_i = 0; tab_i < NPDENTRIES; tab_i++) {			
+		for (tab_i = 0; tab_i < ntab; tab_i++) {			
 			if (!(uvpd[tab_i] & PTE_P)) continue;
 
 			tab_end = (tab_i + 1) * NPTENTRIES;
