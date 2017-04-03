@@ -7,6 +7,20 @@
 // It is one of the bits explicitly allocated to user processes (PTE_AVAIL).
 #define PTE_COW		0x800
 
+static void
+copy_page(void *srcva, envid_t dstenv, void *dstva, int perm) 
+{
+	if(sys_page_alloc(0, (void*)PFTEMP, perm)) {
+		panic("Failed to allocate a page for a copy!");
+	}
+
+	memcpy((void*)PFTEMP, srcva, PGSIZE);
+
+	if (sys_page_map(0, (void*)PFTEMP, dstenv, dstva, perm)) {
+		panic("Failed to map a copied page!");
+	}
+}
+
 //
 // Custom page fault handler - if faulting page is copy-on-write,
 // map in our own private writable copy.
@@ -23,7 +37,12 @@ pgfault(struct UTrapframe *utf)
 	//   Use the read-only page table mappings at uvpt
 	//   (see <inc/memlayout.h>).
 
-	// LAB 9: Your code here.
+	// LAB 9: My code here:
+	if (!(err & FEC_WR)) panic("This page fault isn't caused by a write!");
+
+	// A kiosk version of pgdir_walk cafe:
+	pte_t pte = uvpt[utf->utf_fault_va / PGSIZE];
+	if (!(pte & PTE_COW)) panic("This page is not copy-on-write!");
 
 	// Allocate a new page, map it at a temporary location (PFTEMP),
 	// copy the data from the old page to the new page, then move the new
@@ -32,9 +51,9 @@ pgfault(struct UTrapframe *utf)
 	//   You should make three system calls.
 	//   No need to explicitly delete the old page's mapping.
 
-	// LAB 9: Your code here.
-
-	panic("pgfault not implemented");
+	// LAB 9: My code here:
+	addr = ROUNDDOWN(addr, PGSIZE);
+	copy_page(addr, 0, addr, PTE_W | PTE_U | PTE_P);
 }
 
 //
@@ -51,9 +70,21 @@ pgfault(struct UTrapframe *utf)
 static int
 duppage(envid_t envid, unsigned pn)
 {
-	// LAB 9: Your code here.
-	panic("duppage not implemented");
-	return 0;
+	// LAB 9: My code here:
+	int error;
+	pte_t pte = uvpt[pn];
+
+	if (!(pte & PTE_P)) return -1;
+
+	int perm = PTE_U | PTE_P;
+	if (pte & (PTE_W | PTE_COW)) {
+		perm |= PTE_COW;
+	}
+
+	error = sys_page_map(0, (void*)(pn * PGSIZE), 0, (void*)(pn * PGSIZE), perm);
+	if (error) return error;
+
+	return sys_page_map(0, (void*)(pn * PGSIZE), envid, (void*)(pn * PGSIZE), perm);
 }
 
 //
@@ -75,8 +106,47 @@ duppage(envid_t envid, unsigned pn)
 envid_t
 fork(void)
 {
-	// LAB 9: Your code here.
-	panic("fork not implemented");
+	// LAB 9: My code here:
+	int ret;
+	int i;
+	int tab_i;
+
+	set_pgfault_handler(pgfault);
+	ret = sys_exofork();
+
+	if (ret > 0) {
+		// We're the parent
+
+		for (tab_i = 0; tab_i < NPDENTRIES; tab_i++) {
+			if (!(uvpd[tab_i] & PTE_P)) continue;
+
+			for (i = tab_i * NPTENTRIES; i < (tab_i + 1) * NPTENTRIES; i++) {
+				if ((i + 1) * PGSIZE == UXSTACKTOP) continue;
+
+				duppage(ret, i);			
+			}	
+
+			if (i * PGSIZE >= ULIM) break;		
+		}
+
+		copy_page((void*)(UXSTACKTOP - PGSIZE), ret, (void*)(UXSTACKTOP - PGSIZE), PTE_U | PTE_P | PTE_W);
+		sys_env_set_pgfault_upcall(ret, thisenv->env_pgfault_upcall);
+
+		// Start the child
+		if (sys_env_set_status(ret, ENV_RUNNABLE))
+			panic("fork() failed to start a new environment!");
+	}
+
+	if (ret == 0) {
+		// We're the child
+		thisenv = &envs[ENVX(sys_getenvid())];
+	}
+
+	if (ret < 0) {
+		panic("exofork() failed!");
+	}
+	
+	return ret;
 }
 
 // Challenge!
