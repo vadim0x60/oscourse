@@ -76,15 +76,15 @@ duppage(envid_t envid, unsigned pn)
 
 	if (!(pte & PTE_P)) return -1;
 
-	int perm = PTE_U | PTE_P;
-	if (pte & (PTE_W | PTE_COW)) {
-		perm |= PTE_COW;
+	int cow = pte & PTE_COW || pte & PTE_W;
+
+	error = sys_page_map(0, (void*)(pn * PGSIZE), envid, (void*)(pn * PGSIZE), (cow ? PTE_COW : 0) | PTE_U);
+
+	if (!error && cow) {
+		error = sys_page_map(0, (void*)(pn * PGSIZE), 0, (void*)(pn * PGSIZE), PTE_COW | PTE_U);
 	}
 
-	error = sys_page_map(0, (void*)(pn * PGSIZE), 0, (void*)(pn * PGSIZE), perm);
-	if (error) return error;
-
-	return sys_page_map(0, (void*)(pn * PGSIZE), envid, (void*)(pn * PGSIZE), perm);
+	return error;
 }
 
 //
@@ -107,26 +107,24 @@ envid_t
 fork(void)
 {
 	// LAB 9: My code here:
-	int ret;
-	int i;
-	int tab_i;
-
+	int ret, i, tab_i, tab_end;
 	set_pgfault_handler(pgfault);
 	ret = sys_exofork();
 
 	if (ret > 0) {
 		// We're the parent
 
-		for (tab_i = 0; tab_i < NPDENTRIES; tab_i++) {
+		for (tab_i = 0; tab_i < NPDENTRIES; tab_i++) {			
 			if (!(uvpd[tab_i] & PTE_P)) continue;
 
-			for (i = tab_i * NPTENTRIES; i < (tab_i + 1) * NPTENTRIES; i++) {
+			tab_end = (tab_i + 1) * NPTENTRIES;
+			for (i = tab_i * NPTENTRIES; i < tab_end; i++) {
 				if ((i + 1) * PGSIZE == UXSTACKTOP) continue;
 
 				duppage(ret, i);			
 			}	
 
-			if (i * PGSIZE >= ULIM) break;		
+			if (i * PGSIZE >= UTOP) break;		
 		}
 
 		copy_page((void*)(UXSTACKTOP - PGSIZE), ret, (void*)(UXSTACKTOP - PGSIZE), PTE_U | PTE_P | PTE_W);
@@ -135,6 +133,7 @@ fork(void)
 		// Start the child
 		if (sys_env_set_status(ret, ENV_RUNNABLE))
 			panic("fork() failed to start a new environment!");
+		sys_yield();
 	}
 
 	if (ret == 0) {
