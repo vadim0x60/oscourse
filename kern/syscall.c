@@ -326,8 +326,29 @@ sys_page_unmap(envid_t envid, void *va)
 static int
 sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 {
-	// LAB 9: Your code here.
-	panic("sys_ipc_try_send not implemented");
+	// LAB 9: My code here:
+	struct Env* env;
+	int error;
+
+	error = envid2env(envid, &env, false);
+	if (error) return error;
+
+	if (!env->env_ipc_recving) return -E_IPC_NOT_RECV;
+
+	env->env_ipc_recving = false;
+	env->env_ipc_from = curenv->env_id;
+	env->env_ipc_value = value;
+	env->env_ipc_perm = 0;
+
+	if ((int)srcva < UTOP && (int)env->env_ipc_dstva < UTOP) {
+		error = sys_page_map(curenv->env_id, srcva, envid, env->env_ipc_dstva, perm);
+		if (error) return error;
+		env->env_ipc_perm = perm;
+	}
+
+	env->env_status = ENV_RUNNABLE;
+
+	return 0;
 }
 
 // Block until a value is ready.  Record that you want to receive
@@ -344,9 +365,14 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 static int
 sys_ipc_recv(void *dstva)
 {
-	// LAB 9: Your code here.
-	panic("sys_ipc_recv not implemented");
-	return 0;
+	// LAB 9: My code here:
+	if ((int)dstva < UTOP && (int)dstva % PGSIZE) return -E_INVAL;
+
+	curenv->env_ipc_dstva = dstva;
+	curenv->env_ipc_recving = true;
+
+	curenv->env_status = ENV_NOT_RUNNABLE;
+	sched_yield();
 }
 
 // Dispatches to the correct kernel function, passing the arguments.
