@@ -2,8 +2,6 @@
 #include <inc/string.h>
 #include <inc/lib.h>
 
-#define debug 0
-
 union Fsipc fsipcbuf __attribute__((aligned(PGSIZE)));
 
 // Send an inter-environment request to the file server, and wait for

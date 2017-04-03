@@ -1,6 +1,5 @@
 #include <inc/lib.h>
 
-#define debug		0
 
 // Maximum number of file descriptors a program may hold open concurrently
 #define MAXFD		32

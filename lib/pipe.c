@@ -1,7 +1,5 @@
 #include <inc/lib.h>
 
-#define debug 0
-
 static ssize_t devpipe_read(struct Fd *fd, void *buf, size_t n);
 static ssize_t devpipe_write(struct Fd *fd, const void *buf, size_t n);
 static int devpipe_stat(struct Fd *fd, struct Stat *stat);
