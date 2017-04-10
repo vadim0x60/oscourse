@@ -177,12 +177,13 @@ file_block_walk(struct File *f, uint32_t filebno, uint32_t **ppdiskbno, bool all
 			if (!alloc) return -E_NOT_FOUND; // We're not allowed to call alloc_block()
 				
 			r = alloc_block();
-
 			if (r < 0) return -E_NO_DISK; // alloc_block() failed
-			else f->f_indirect = r;
+			
+			f->f_indirect = r;
+			memset(diskaddr(r), 0, BLKSIZE);
 		}
 
-		blocknoslot = diskaddr(f->f_indirect) + filebno;
+		blocknoslot = (uint32_t*)diskaddr(f->f_indirect) + filebno;
 	}
 
 	if (ppdiskbno) *ppdiskbno = blocknoslot;
