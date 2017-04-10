@@ -61,8 +61,33 @@ alloc_block(void)
 	// contains the in-use bits for BLKBITSIZE blocks.  There are
 	// super->s_nblocks blocks in the disk altogether.
 
-	// LAB 10: Your code here.
-	panic("alloc_block not implemented");
+	// LAB 10: My code here:
+	uint32_t blockno = 0;
+	uint32_t store = 0;
+
+	// Bitmapblock = a variable in bitmap, storing metadata about 32 blocks
+	uint32_t* bitmapblock = bitmap - 1;
+
+	while (blockno < super->s_nblocks) {
+		if (!store) {
+			// No more valid blocks in this bitmapblock
+			// Move on to the next one
+			bitmapblock++;
+			store = *bitmapblock;
+			blockno = ROUNDUP(blockno, 32);
+		}
+
+		if (store & 1) {
+			// We have a free block!
+			*bitmapblock &= ~(1 << (blockno % 32));
+			flush_block(bitmap);
+			return blockno;
+		}
+		
+		store >>= 1;
+		blockno++;	
+	}
+
 	return -E_NO_DISK;
 }
 
