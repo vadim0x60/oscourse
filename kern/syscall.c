@@ -345,6 +345,8 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 	// LAB 9: My code here:
 	struct Env* env;
 	int error;
+	pte_t* src_pte;
+	struct PageInfo* page;
 
 	error = envid2env(envid, &env, false);
 	if (error) return error;
@@ -357,8 +359,19 @@ sys_ipc_try_send(envid_t envid, uint32_t value, void *srcva, unsigned perm)
 	env->env_ipc_perm = 0;
 
 	if ((int)srcva < UTOP && (int)env->env_ipc_dstva < UTOP) {
-		error = sys_page_map(curenv->env_id, srcva, envid, env->env_ipc_dstva, perm);
+		if (!(perm & PTE_U) ||
+			!(perm & PTE_P) ||
+			perm & !PTE_SYSCALL ||
+			(int)srcva % PGSIZE)
+			return -E_INVAL;
+
+		page = page_lookup(curenv->env_pgdir, srcva, &src_pte);
+		if (!page) return -E_INVAL;
+		if ((perm & PTE_W) && !(*src_pte & PTE_W)) return -E_INVAL;
+
+		error = page_insert(env->env_pgdir, page, env->env_ipc_dstva, perm);
 		if (error) return error;
+
 		env->env_ipc_perm = perm;
 	}
 
