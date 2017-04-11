@@ -73,15 +73,21 @@ duppage(envid_t envid, unsigned pn)
 	// LAB 9: My code here:
 	int error;
 	pte_t pte = uvpt[pn];
+	void* va = (void*)(pn * PGSIZE);
 
 	if (!(pte & PTE_P)) return -1;
 
+	if (pte & PTE_SHARE) {
+		sys_page_map(0, va, envid, va, pte & PTE_SYSCALL);
+		return 0;
+	}
+
 	int cow = pte & PTE_COW || pte & PTE_W;
 
-	error = sys_page_map(0, (void*)(pn * PGSIZE), envid, (void*)(pn * PGSIZE), (cow ? PTE_COW : 0) | PTE_U);
+	error = sys_page_map(0, va, envid, va, (cow ? PTE_COW : 0) | PTE_U);
 
 	if (!error && cow) {
-		error = sys_page_map(0, (void*)(pn * PGSIZE), 0, (void*)(pn * PGSIZE), PTE_COW | PTE_U);
+		error = sys_page_map(0, va, 0, va, PTE_COW | PTE_U);
 	}
 
 	return error;
@@ -108,7 +114,7 @@ fork(void)
 {
 	// LAB 9: My code here:
 	int ret, i, tab_i, tab_end;
-	int ntab = UTOP / (PGSIZE * NPTENTRIES);
+	int ntab = UTOP / PTSIZE;
 	set_pgfault_handler(pgfault);
 	ret = sys_exofork();
 

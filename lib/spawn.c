@@ -299,7 +299,31 @@ map_segment(envid_t child, uintptr_t va, size_t memsz,
 static int
 copy_shared_pages(envid_t child)
 {
-	// LAB 11: Your code here.
+	// LAB 11: My code here:
+
+	int error;
+	int i, tab_i, tab_end;
+	int ntab = UTOP / PTSIZE;
+
+	pte_t pte;
+
+	for (tab_i = 0; tab_i < ntab; tab_i++) {			
+		if (!(uvpd[tab_i] & PTE_P)) continue;
+
+		tab_end = (tab_i + 1) * NPTENTRIES;
+		for (i = tab_i * NPTENTRIES; i < tab_end; i++) {
+			if ((i + 1) * PGSIZE == UXSTACKTOP) continue;
+
+			pte = uvpt[i];
+			if (!(pte & PTE_SHARE)) continue;
+			
+			error = sys_page_map(0, (void*)(i * PGSIZE), child, (void*)(i * PGSIZE), pte & PTE_SYSCALL);	
+			if (error) return error;
+		}	
+
+		if (i * PGSIZE >= UTOP) break;		
+	}
+
 	return 0;
 }
 
