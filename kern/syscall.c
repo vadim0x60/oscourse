@@ -225,7 +225,7 @@ sys_page_alloc(envid_t envid, void *va, int perm)
 		(int)va % PGSIZE) 
 		return -E_INVAL;
 
-	page = page_alloc(0);
+	page = page_alloc(ALLOC_ZERO);
 	if (!page) return -E_NO_MEM;
 
 	error = page_insert(e->env_pgdir, page, va, perm);
