@@ -265,7 +265,7 @@ trap_dispatch(struct Trapframe *tf)
 	}
 
 	// Handle keyboard and serial interrupts.
-	// LAB 11: Your code here.
+	// LAB 11: My code here.
 
 	print_trapframe(tf);
 	if (tf->tf_cs == GD_KT) {

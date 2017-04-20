@@ -316,6 +316,7 @@ copy_shared_pages(envid_t child)
 
 			pte = uvpt[i];
 			if (!(pte & PTE_SHARE)) continue;
+			if (!(pte & PTE_P)) continue;
 			
 			error = sys_page_map(0, (void*)(i * PGSIZE), child, (void*)(i * PGSIZE), pte & PTE_SYSCALL);	
 			if (error) return error;
